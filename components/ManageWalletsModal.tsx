@@ -7,10 +7,11 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { keys } from '@/lib/query-keys'
-import { getAccounts, addAccount } from '@/app/actions'
+import { getAccounts, addAccount, updateAccount, deleteAccount } from '@/app/actions'
 import { formatCurrency } from '@/lib/utils'
 import { EmojiPicker } from './EmojiPicker'
-import { PlusIcon } from 'lucide-react'
+import { PlusIcon, Edit2, Trash2, Check, X } from 'lucide-react'
+import type { Account } from '@/lib/types'
 
 interface Props { open: boolean; onClose: () => void }
 
@@ -56,15 +57,7 @@ export function ManageWalletsModal({ open, onClose }: Props) {
             <p className="text-xs text-zinc-500 text-center py-4">No accounts yet.</p>
           )}
           {accounts.map(a => (
-            <div key={a.id} className="flex items-center gap-3 py-2.5 px-3 rounded-xl hover:bg-zinc-800">
-              <span className="text-2xl">{a.emoji}</span>
-              <div className="flex-1">
-                <p className="text-sm font-medium text-zinc-100">{a.name}</p>
-              </div>
-              <p className="text-sm font-semibold tabular-nums text-zinc-100">
-                {formatCurrency(a.balance)}
-              </p>
-            </div>
+            <AccountRow key={a.id} account={a} />
           ))}
         </div>
 
@@ -136,5 +129,117 @@ export function ManageWalletsModal({ open, onClose }: Props) {
         )}
       </DialogContent>
     </Dialog>
+  )
+}
+
+function AccountRow({ account }: { account: Account }) {
+  const qc = useQueryClient()
+  const [isEditing, setIsEditing] = useState(false)
+  const [name, setName] = useState(account.name)
+  const [emoji, setEmoji] = useState(account.emoji)
+  const [balance, setBalance] = useState(account.balance.toString())
+
+  const updateMut = useMutation({
+    mutationFn: (args: { id: string, name: string, emoji: string, balance: number }) => updateAccount(args.id, args),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: keys.accounts })
+      qc.invalidateQueries({ queryKey: keys.balance })
+      setIsEditing(false)
+    }
+  })
+
+  const deleteMut = useMutation({
+    mutationFn: deleteAccount,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: keys.accounts })
+      qc.invalidateQueries({ queryKey: keys.transactions() })
+      qc.invalidateQueries({ queryKey: keys.balance })
+    }
+  })
+
+  if (isEditing) {
+    return (
+      <div className="flex flex-col gap-2 p-2 bg-zinc-800/50 rounded-xl border border-zinc-700">
+        <div className="flex gap-2">
+          <Input 
+            value={emoji} 
+            onChange={e => setEmoji(e.target.value)} 
+            className="w-12 h-9 text-center bg-zinc-900 border-zinc-700 text-zinc-50 shrink-0" 
+            placeholder="💸"
+          />
+          <Input 
+            value={name} 
+            onChange={e => setName(e.target.value)} 
+            className="flex-1 h-9 bg-zinc-900 border-zinc-700 text-zinc-50" 
+          />
+        </div>
+        <div className="flex gap-2">
+          <Input 
+            type="number"
+            inputMode="decimal"
+            value={balance} 
+            onChange={e => setBalance(e.target.value)} 
+            className="flex-1 h-9 bg-zinc-900 border-zinc-700 text-zinc-50" 
+            placeholder="Balance"
+          />
+          <Button 
+            size="icon" 
+            variant="ghost" 
+            className="w-9 h-9 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-400/10 shrink-0" 
+            onClick={() => {
+              const parsed = parseFloat(balance)
+              if (name.trim() && !isNaN(parsed)) {
+                updateMut.mutate({ id: account.id, name: name.trim(), emoji, balance: parsed })
+              }
+            }}
+          >
+            <Check className="w-4 h-4" />
+          </Button>
+          <Button 
+            size="icon" 
+            variant="ghost" 
+            className="w-9 h-9 text-zinc-400 hover:text-zinc-300 hover:bg-zinc-700 shrink-0" 
+            onClick={() => {
+              setIsEditing(false)
+              setName(account.name)
+              setEmoji(account.emoji)
+              setBalance(account.balance.toString())
+            }}
+          >
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex items-center gap-3 py-2.5 px-3 rounded-xl hover:bg-zinc-800/50 group transition-colors">
+      <span className="text-2xl">{account.emoji}</span>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium text-zinc-100 truncate">{account.name}</p>
+        <p className="text-xs font-semibold tabular-nums text-zinc-400">
+          {formatCurrency(account.balance)}
+        </p>
+      </div>
+      <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity shrink-0">
+        <button 
+          onClick={() => setIsEditing(true)}
+          className="p-1.5 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700 rounded-lg transition-colors"
+        >
+          <Edit2 className="w-4 h-4" />
+        </button>
+        <button 
+          onClick={() => {
+            if (confirm(`Delete wallet "${account.name}"? Transactions using this wallet will lose their wallet assignment.`)) {
+              deleteMut.mutate(account.id)
+            }
+          }}
+          className="p-1.5 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-lg transition-colors"
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
   )
 }

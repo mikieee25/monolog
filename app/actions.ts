@@ -213,3 +213,120 @@ export async function addCategory(input: {
   if (error) throw error
   revalidatePath('/')
 }
+
+export async function updateTransaction(id: string, input: {
+  amount: number
+  type: TransactionType
+  description?: string
+  category_id: string
+  account_id: string
+  payment_method: PaymentMethod
+  date: string
+}) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const { data: oldTx, error: fetchError } = await supabase
+    .from('transactions')
+    .select('*')
+    .eq('id', id)
+    .eq('user_id', user.id)
+    .single()
+  
+  if (fetchError) throw fetchError
+
+  // Revert old transaction's effect
+  const oldDelta = oldTx.type === 'income' ? -oldTx.amount : Number(oldTx.amount)
+  if (oldTx.account_id) {
+    const { data: oldAcc } = await supabase.from('accounts').select('balance').eq('id', oldTx.account_id).single()
+    if (oldAcc) {
+      await supabase.from('accounts').update({ balance: Number(oldAcc.balance) + oldDelta }).eq('id', oldTx.account_id)
+    }
+  }
+
+  // Update
+  const { error: updateError } = await supabase
+    .from('transactions')
+    .update({
+      amount: input.amount,
+      type: input.type,
+      description: input.description || null,
+      category_id: input.category_id,
+      account_id: input.account_id,
+      payment_method: input.payment_method,
+      date: input.date,
+    })
+    .eq('id', id)
+    .eq('user_id', user.id)
+
+  if (updateError) throw updateError
+
+  // Apply new effect
+  const newDelta = input.type === 'income' ? input.amount : -input.amount
+  if (input.account_id) {
+    const { data: newAcc } = await supabase.from('accounts').select('balance').eq('id', input.account_id).single()
+    if (newAcc) {
+      await supabase.from('accounts').update({ balance: Number(newAcc.balance) + newDelta }).eq('id', input.account_id)
+    }
+  }
+
+  revalidatePath('/')
+}
+
+export async function deleteTransaction(id: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const { data: tx } = await supabase.from('transactions').select('*').eq('id', id).eq('user_id', user.id).single()
+  if (tx) {
+    const delta = tx.type === 'income' ? -tx.amount : Number(tx.amount)
+    if (tx.account_id) {
+      const { data: acc } = await supabase.from('accounts').select('balance').eq('id', tx.account_id).single()
+      if (acc) {
+        await supabase.from('accounts').update({ balance: Number(acc.balance) + delta }).eq('id', tx.account_id)
+      }
+    }
+  }
+
+  const { error } = await supabase.from('transactions').delete().eq('id', id).eq('user_id', user.id)
+  if (error) throw error
+  revalidatePath('/')
+}
+
+export async function updateCategory(id: string, input: { name: string, emoji: string }) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+  const { error } = await supabase.from('categories').update(input).eq('id', id).eq('user_id', user.id)
+  if (error) throw error
+  revalidatePath('/')
+}
+
+export async function deleteCategory(id: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+  const { error } = await supabase.from('categories').delete().eq('id', id).eq('user_id', user.id)
+  if (error) throw error
+  revalidatePath('/')
+}
+
+export async function updateAccount(id: string, input: { name: string, emoji: string, balance: number }) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+  const { error } = await supabase.from('accounts').update(input).eq('id', id).eq('user_id', user.id)
+  if (error) throw error
+  revalidatePath('/')
+}
+
+export async function deleteAccount(id: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+  const { error } = await supabase.from('accounts').delete().eq('id', id).eq('user_id', user.id)
+  if (error) throw error
+  revalidatePath('/')
+}

@@ -7,11 +7,11 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { keys } from '@/lib/query-keys'
-import { getCategories, addCategory } from '@/app/actions'
+import { getCategories, addCategory, updateCategory, deleteCategory } from '@/app/actions'
 import { cn } from '@/lib/utils'
 import { EmojiPicker } from './EmojiPicker'
-import { PlusIcon } from 'lucide-react'
-import type { CategoryType } from '@/lib/types'
+import { PlusIcon, Edit2, Trash2, Check, X } from 'lucide-react'
+import type { CategoryType, Category } from '@/lib/types'
 
 interface Props { open: boolean; onClose: () => void }
 
@@ -52,10 +52,7 @@ export function ManageCategoriesModal({ open, onClose }: Props) {
       <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-600 mb-1.5">{title}</p>
       <div className="space-y-0.5">
         {cats.map(c => (
-          <div key={c.id} className="flex items-center gap-2 py-2 px-2 rounded-lg">
-            <span className="text-base">{c.emoji}</span>
-            <span className="text-sm text-zinc-200">{c.name}</span>
-          </div>
+          <CategoryRow key={c.id} category={c} />
         ))}
       </div>
     </div>
@@ -149,5 +146,97 @@ export function ManageCategoriesModal({ open, onClose }: Props) {
         )}
       </DialogContent>
     </Dialog>
+  )
+}
+
+function CategoryRow({ category }: { category: Category }) {
+  const qc = useQueryClient()
+  const [isEditing, setIsEditing] = useState(false)
+  const [name, setName] = useState(category.name)
+  const [emoji, setEmoji] = useState(category.emoji)
+
+  const updateMut = useMutation({
+    mutationFn: (args: { id: string, name: string, emoji: string }) => updateCategory(args.id, args),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: keys.categories() })
+      qc.invalidateQueries({ queryKey: keys.transactions() })
+      setIsEditing(false)
+    }
+  })
+
+  const deleteMut = useMutation({
+    mutationFn: deleteCategory,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: keys.categories() })
+      qc.invalidateQueries({ queryKey: keys.transactions() })
+    }
+  })
+
+  if (isEditing) {
+    return (
+      <div className="flex items-center gap-2 p-1.5 bg-zinc-800/50 rounded-xl border border-zinc-700">
+        <Input 
+          value={emoji} 
+          onChange={e => setEmoji(e.target.value)} 
+          className="w-10 h-8 text-center bg-zinc-900 border-zinc-700 text-zinc-50 shrink-0 px-0" 
+          placeholder="📦"
+        />
+        <Input 
+          value={name} 
+          onChange={e => setName(e.target.value)} 
+          className="flex-1 h-8 bg-zinc-900 border-zinc-700 text-zinc-50" 
+        />
+        <Button 
+          size="icon" 
+          variant="ghost" 
+          className="w-8 h-8 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-400/10 shrink-0" 
+          onClick={() => {
+            if (name.trim()) {
+              updateMut.mutate({ id: category.id, name: name.trim(), emoji })
+            }
+          }}
+        >
+          <Check className="w-4 h-4" />
+        </Button>
+        <Button 
+          size="icon" 
+          variant="ghost" 
+          className="w-8 h-8 text-zinc-400 hover:text-zinc-300 hover:bg-zinc-700 shrink-0" 
+          onClick={() => {
+            setIsEditing(false)
+            setName(category.name)
+            setEmoji(category.emoji)
+          }}
+        >
+          <X className="w-4 h-4" />
+        </Button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-zinc-800/50 group transition-colors">
+      <span className="text-base shrink-0">{category.emoji}</span>
+      <span className="text-sm text-zinc-200 flex-1 min-w-0 truncate">{category.name}</span>
+      
+      <div className="flex items-center gap-0.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity shrink-0">
+        <button 
+          onClick={() => setIsEditing(true)}
+          className="p-1 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700 rounded-lg transition-colors"
+        >
+          <Edit2 className="w-3.5 h-3.5" />
+        </button>
+        <button 
+          onClick={() => {
+            if (confirm(`Delete category "${category.name}"? Transactions using this category will become uncategorised.`)) {
+              deleteMut.mutate(category.id)
+            }
+          }}
+          className="p-1 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-lg transition-colors"
+        >
+          <Trash2 className="w-3.5 h-3.5" />
+        </button>
+      </div>
+    </div>
   )
 }

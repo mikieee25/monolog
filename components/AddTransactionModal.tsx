@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useSuspenseQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -8,11 +8,15 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { keys } from '@/lib/query-keys'
-import { getAccounts, getCategories, addTransaction } from '@/app/actions'
+import { getAccounts, getCategories, addTransaction, updateTransaction } from '@/app/actions'
 import { cn } from '@/lib/utils'
 import type { PaymentMethod, TransactionType, Transaction } from '@/lib/types'
 
-interface Props { open: boolean; onClose: () => void }
+interface Props { 
+  open: boolean; 
+  onClose: () => void;
+  initialData?: Transaction | null;
+}
 
 const PAYMENT_METHODS: { value: PaymentMethod; label: string }[] = [
   { value: 'cash',          label: 'Cash'          },
@@ -20,8 +24,9 @@ const PAYMENT_METHODS: { value: PaymentMethod; label: string }[] = [
   { value: 'bank_transfer', label: 'Bank Transfer' },
 ]
 
-export function AddTransactionModal({ open, onClose }: Props) {
+export function AddTransactionModal({ open, onClose, initialData }: Props) {
   const qc = useQueryClient()
+  const isEdit = !!initialData
 
   const { data: accounts }   = useSuspenseQuery({ queryKey: keys.accounts,     queryFn: getAccounts })
   const { data: categories } = useSuspenseQuery({ queryKey: keys.categories(), queryFn: () => getCategories() })
@@ -35,13 +40,44 @@ export function AddTransactionModal({ open, onClose }: Props) {
   const [date, setDate]         = useState(new Date().toISOString().split('T')[0])
   const [error, setError]       = useState('')
 
+  useEffect(() => {
+    if (open) {
+      if (initialData) {
+        setType(initialData.type)
+        setAmount(String(initialData.amount))
+        setDesc(initialData.description || '')
+        setCategoryId(initialData.category_id || '')
+        setAccountId(initialData.account_id || '')
+        setPayment(initialData.payment_method)
+        setDate(initialData.date)
+      } else {
+        setType('expense')
+        setAmount('')
+        setDesc('')
+        setCategoryId('')
+        setAccountId('')
+        setPayment('cash')
+        setDate(new Date().toISOString().split('T')[0])
+      }
+      setError('')
+    }
+  }, [open, initialData])
+
   const filteredCategories = categories.filter(c => c.type === type)
 
   const mutation = useMutation({
-    mutationFn: addTransaction,
+    mutationFn: async (input: Parameters<typeof addTransaction>[0]) => {
+      if (isEdit) {
+        await updateTransaction(initialData.id, input)
+      } else {
+        await addTransaction(input)
+      }
+    },
 
     // ── Optimistic update ──────────────────────────────────────────────────
     onMutate: async (input) => {
+      if (isEdit) return {} // skip optimistic update for edits to keep it simple
+
       await qc.cancelQueries({ queryKey: keys.transactions() })
       await qc.cancelQueries({ queryKey: keys.balance })
       await qc.cancelQueries({ queryKey: keys.monthlySpending })
@@ -78,8 +114,8 @@ export function AddTransactionModal({ open, onClose }: Props) {
       return { prevTxs, prevBal, prevSpend }
     },
 
-    onError: (_err, _vars, ctx) => {
-      if (ctx) {
+    onError: (_err, _vars, ctx: any) => {
+      if (ctx?.prevTxs) {
         qc.setQueryData(keys.transactions(), ctx.prevTxs)
         qc.setQueryData(keys.balance, ctx.prevBal)
         qc.setQueryData(keys.monthlySpending, ctx.prevSpend)
@@ -94,17 +130,9 @@ export function AddTransactionModal({ open, onClose }: Props) {
     },
 
     onSuccess: () => {
-      resetAndClose()
+      onClose()
     },
   })
-
-  function resetAndClose() {
-    setAmount(''); setDesc(''); setCategoryId(''); setAccountId('')
-    setPayment('cash'); setType('expense')
-    setDate(new Date().toISOString().split('T')[0])
-    setError('')
-    onClose()
-  }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -117,10 +145,10 @@ export function AddTransactionModal({ open, onClose }: Props) {
   }
 
   return (
-    <Dialog open={open} onOpenChange={v => !v && resetAndClose()}>
+    <Dialog open={open} onOpenChange={v => !v && onClose()}>
       <DialogContent className="bg-zinc-900 border-zinc-800 text-zinc-50 max-w-sm rounded-2xl p-5">
         <DialogHeader>
-          <DialogTitle className="text-base font-semibold">New Transaction</DialogTitle>
+          <DialogTitle className="text-base font-semibold">{isEdit ? 'Edit Transaction' : 'New Transaction'}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 mt-1">
@@ -258,7 +286,7 @@ export function AddTransactionModal({ open, onClose }: Props) {
             disabled={mutation.isPending}
             className="w-full h-12 text-sm font-semibold bg-zinc-50 text-zinc-900 hover:bg-white rounded-xl"
           >
-            {mutation.isPending ? 'Saving…' : 'Add Transaction'}
+            {mutation.isPending ? 'Saving…' : isEdit ? 'Save Changes' : 'Add Transaction'}
           </Button>
         </form>
       </DialogContent>
