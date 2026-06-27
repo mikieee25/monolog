@@ -31,7 +31,7 @@ export async function getAiVibeCheck() {
   }
 
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-8b' })
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' })
     
     // Format the transactions into a compact string to save tokens
     const txSummary = transactions.map(t => 
