@@ -5,13 +5,14 @@ import { keys } from '@/lib/query-keys'
 import { getBalance, getMonthlySpending, getProjectedEndOfMonthBalance } from '@/app/actions'
 import { formatCurrency } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { PlusIcon } from 'lucide-react'
+import { PlusIcon, Mic } from 'lucide-react'
 
 interface Props {
   onAddTransaction: () => void
+  onAddWithVoice: () => void
 }
 
-export function BalanceSummary({ onAddTransaction }: Props) {
+export function BalanceSummary({ onAddTransaction, onAddWithVoice }: Props) {
   const { data: balance }  = useSuspenseQuery({ queryKey: keys.balance,         queryFn: getBalance })
   const { data: spending } = useSuspenseQuery({ queryKey: keys.monthlySpending, queryFn: getMonthlySpending })
   const { data: projectedBalance } = useSuspenseQuery({ queryKey: keys.projectedBalance, queryFn: getProjectedEndOfMonthBalance })
@@ -40,15 +41,24 @@ export function BalanceSummary({ onAddTransaction }: Props) {
           </span>
         </div>
 
-        {/* Quick add button */}
-        <Button
-          onClick={onAddTransaction}
-          size="sm"
-          className="ml-auto rounded-full h-9 px-4 text-xs font-semibold bg-zinc-100 text-zinc-900 hover:bg-white"
-        >
-          <PlusIcon className="h-3.5 w-3.5 mr-1.5" />
-          Add
-        </Button>
+        {/* Quick add buttons */}
+        <div className="ml-auto flex items-center gap-1.5">
+          <Button
+            onClick={onAddWithVoice}
+            size="icon"
+            className="rounded-full h-9 w-9 bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200 border border-zinc-700"
+          >
+            <Mic className="h-4 w-4" />
+          </Button>
+          <Button
+            onClick={onAddTransaction}
+            size="sm"
+            className="rounded-full h-9 px-4 text-xs font-semibold bg-zinc-100 text-zinc-900 hover:bg-white"
+          >
+            <PlusIcon className="h-3.5 w-3.5 mr-1.5" />
+            Add
+          </Button>
+        </div>
       </div>
     </div>
   )

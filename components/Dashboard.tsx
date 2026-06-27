@@ -18,10 +18,14 @@ type Modal = 'transaction' | 'wallets' | 'categories' | null
 
 export function Dashboard() {
   const [activeModal, setActiveModal] = useState<Modal>(null)
+  const [startWithVoice, setStartWithVoice] = useState(false)
   const [view, setView] = useState<'feed' | 'calendar'>('feed')
   const [aiMessage, setAiMessage] = useState<{message: string, type: 'success' | 'error' | 'loading'} | null>(null)
   const [isAiLoading, setIsAiLoading] = useState(false)
-  const close = () => setActiveModal(null)
+  const close = () => {
+    setActiveModal(null)
+    setTimeout(() => setStartWithVoice(false), 200)
+  }
 
   useEffect(() => {
     processRecurringTransactions().catch(console.error)
@@ -62,7 +66,13 @@ export function Dashboard() {
         </header>
 
         {/* Balance + spending summary */}
-        <BalanceSummary onAddTransaction={() => setActiveModal('transaction')} />
+        <BalanceSummary 
+          onAddTransaction={() => setActiveModal('transaction')} 
+          onAddWithVoice={() => {
+            setStartWithVoice(true)
+            setActiveModal('transaction')
+          }}
+        />
 
         <div className="px-5 md:px-0 mt-4 md:mt-6">
           {isAiLoading ? (
@@ -141,7 +151,7 @@ export function Dashboard() {
       </div>
 
       {/* Modals */}
-      <AddTransactionModal     open={activeModal === 'transaction'} onClose={close} />
+      <AddTransactionModal     open={activeModal === 'transaction'} onClose={close} startWithVoice={startWithVoice} />
       <ManageWalletsModal      open={activeModal === 'wallets'}     onClose={close} />
       <ManageCategoriesModal   open={activeModal === 'categories'}  onClose={close} />
     </div>

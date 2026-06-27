@@ -21,6 +21,7 @@ interface Props {
   open: boolean; 
   onClose: () => void;
   initialData?: Transaction | null;
+  startWithVoice?: boolean;
 }
 
 const PAYMENT_METHODS: { value: PaymentMethod; label: string }[] = [
@@ -29,7 +30,7 @@ const PAYMENT_METHODS: { value: PaymentMethod; label: string }[] = [
   { value: 'bank_transfer', label: 'Bank Transfer' },
 ]
 
-export function AddTransactionModal({ open, onClose, initialData }: Props) {
+export function AddTransactionModal({ open, onClose, initialData, startWithVoice }: Props) {
   const qc = useQueryClient()
   const isEdit = !!initialData
 
@@ -75,10 +76,16 @@ export function AddTransactionModal({ open, onClose, initialData }: Props) {
         setDate(new Date().toISOString().split('T')[0])
         setIsRecurring(false)
         setRecurrenceDay('')
+        if (startWithVoice && isSupported) {
+          setTimeout(() => startListening(), 100)
+        }
       }
       setError('')
+    } else {
+      stopListening()
+      setDesc('')
     }
-  }, [open, initialData])
+  }, [open, initialData, startWithVoice, isSupported, startListening, stopListening])
 
   const [isCategorizing, setIsCategorizing] = useState(false)
 
