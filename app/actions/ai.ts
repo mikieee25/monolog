@@ -119,8 +119,20 @@ export async function suggestCategoryAndWallet(
     const result = await model.generateContent(prompt)
     const response = await result.response
     const text = response.text().trim()
+    
+    console.log('AI Raw Response:', text)
 
-    const parsed = JSON.parse(text)
+    // Strip markdown code blocks if the AI ignored instructions
+    let cleanedText = text
+    if (cleanedText.startsWith('```')) {
+      cleanedText = cleanedText
+        .replace(/^```json\s*/i, '')
+        .replace(/^```\s*/, '')
+        .replace(/```\s*$/, '')
+        .trim()
+    }
+
+    const parsed = JSON.parse(cleanedText)
     return {
       categoryId: parsed.categoryId || null,
       accountId: parsed.accountId || null,
