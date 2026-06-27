@@ -6,8 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Mic, Loader2, Sparkles, CheckCircle2 } from 'lucide-react'
 import { useSpeechRecognition } from '@/hooks/use-speech-recognition'
 import { suggestCategoryAndWallet } from '@/app/actions/ai'
-import { addTransaction } from '@/app/actions'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { addTransaction, getAccounts, getCategories } from '@/app/actions'
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import { keys } from '@/lib/query-keys'
 import { cn } from '@/lib/utils'
 
@@ -18,6 +18,10 @@ interface Props {
 
 export function VoiceTransactionModal({ open, onClose }: Props) {
   const qc = useQueryClient()
+  
+  const { data: accounts }   = useQuery({ queryKey: keys.accounts,     queryFn: getAccounts })
+  const { data: categories } = useQuery({ queryKey: keys.categories(), queryFn: () => getCategories() })
+
   const { isListening, transcript, startListening, stopListening, isSupported, setTranscript } = useSpeechRecognition()
   
   const [status, setStatus] = useState<'idle' | 'listening' | 'processing' | 'success' | 'error'>('idle')
@@ -50,23 +54,25 @@ export function VoiceTransactionModal({ open, onClose }: Props) {
 
   const mutation = useMutation({
     mutationFn: async (text: string) => {
+      if (!accounts || !categories) throw new Error('Data not loaded yet')
+        
       // 1. Categorize using AI
-      const aiResult = await suggestCategoryAndWallet(text)
+      const aiResult = await suggestCategoryAndWallet(text, categories, accounts)
       if (!aiResult) throw new Error('Could not understand transaction')
       
       // 2. Add transaction
       await addTransaction({
-        type: aiResult.type || 'expense',
+        type: 'expense',
         amount: aiResult.amount || 0,
         description: text,
-        categoryId: aiResult.categoryId || '',
-        accountId: aiResult.accountId || '',
+        category_id: aiResult.categoryId || '',
+        account_id: aiResult.accountId || '',
         date: new Date().toISOString(),
-        paymentMethod: 'cash' // Default
+        payment_method: aiResult.paymentMethod || 'cash' // Default
       })
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: keys.transactions })
+      qc.invalidateQueries({ queryKey: ['transactions'] })
       qc.invalidateQueries({ queryKey: keys.balance })
       qc.invalidateQueries({ queryKey: keys.monthlySpending })
       qc.invalidateQueries({ queryKey: keys.projectedBalance })

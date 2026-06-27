@@ -75,13 +75,6 @@ export function AddTransactionModal({ open, onClose, initialData }: Props) {
 
   const [isCategorizing, setIsCategorizing] = useState(false)
 
-  const prevListening = useRef(isListening)
-  useEffect(() => {
-    if (prevListening.current && !isListening && desc) {
-      handleDescriptionBlur()
-    }
-    prevListening.current = isListening
-  }, [isListening, desc])
 
   const handleDescriptionBlur = async () => {
     if (isEdit || !desc.trim()) return
