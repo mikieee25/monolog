@@ -357,18 +357,22 @@ export function AddTransactionModal({ open, onClose, initialData }: Props) {
                 onBlur={handleDescriptionBlur}
                 className="bg-zinc-800 border-zinc-700 text-zinc-50 placeholder:text-zinc-600 pr-10"
               />
-              {isSupported && (
-                <button
-                  type="button"
-                  onClick={isListening ? stopListening : startListening}
-                  className={cn(
-                    "absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full transition-colors",
-                    isListening ? "bg-rose-500 text-white animate-pulse" : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700"
-                  )}
-                >
-                  {isListening ? <Mic className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={() => {
+                  if (!isSupported) {
+                    setError('Voice recognition is not supported in this browser.')
+                    return
+                  }
+                  isListening ? stopListening() : startListening()
+                }}
+                className={cn(
+                  "absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full transition-colors",
+                  isListening ? "bg-rose-500 text-white animate-pulse" : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700"
+                )}
+              >
+                {isListening ? <Mic className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+              </button>
             </div>
           </div>
 
