@@ -349,31 +349,13 @@ export function AddTransactionModal({ open, onClose, initialData }: Props) {
                 </span>
               )}
             </div>
-            <div className="relative">
-              <Input
-                placeholder="e.g. Jollibee, Grab ride…"
-                value={desc}
-                onChange={e => setDesc(e.target.value)}
-                onBlur={handleDescriptionBlur}
-                className="bg-zinc-800 border-zinc-700 text-zinc-50 placeholder:text-zinc-600 pr-10"
-              />
-              <button
-                type="button"
-                onClick={() => {
-                  if (!isSupported) {
-                    setError('Voice recognition is not supported in this browser.')
-                    return
-                  }
-                  isListening ? stopListening() : startListening()
-                }}
-                className={cn(
-                  "absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full transition-colors",
-                  isListening ? "bg-rose-500 text-white animate-pulse" : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700"
-                )}
-              >
-                {isListening ? <Mic className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-              </button>
-            </div>
+            <Input
+              placeholder="e.g. Jollibee, Grab ride…"
+              value={desc}
+              onChange={e => setDesc(e.target.value)}
+              onBlur={handleDescriptionBlur}
+              className="bg-zinc-800 border-zinc-700 text-zinc-50 placeholder:text-zinc-600"
+            />
           </div>
 
           {/* Date */}
@@ -415,13 +397,36 @@ export function AddTransactionModal({ open, onClose, initialData }: Props) {
 
           {error && <p className="text-xs text-rose-400">{error}</p>}
 
-          <Button
-            type="submit"
-            disabled={mutation.isPending}
-            className="w-full h-12 text-sm font-semibold bg-zinc-50 text-zinc-900 hover:bg-white rounded-xl"
-          >
-            {mutation.isPending ? 'Saving…' : isEdit ? 'Save Changes' : 'Add Transaction'}
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              type="submit"
+              disabled={mutation.isPending}
+              className="flex-1 h-12 text-sm font-semibold bg-zinc-50 text-zinc-900 hover:bg-white rounded-xl"
+            >
+              {mutation.isPending ? 'Saving…' : isEdit ? 'Save Changes' : 'Add Transaction'}
+            </Button>
+            
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={() => {
+                if (!isSupported) {
+                  setError('Voice recognition is not supported in this browser.')
+                  return
+                }
+                isListening ? stopListening() : startListening()
+              }}
+              className={cn(
+                "h-12 w-12 rounded-xl border-zinc-700 shrink-0 transition-colors",
+                isListening 
+                  ? "bg-rose-500 hover:bg-rose-600 text-white border-transparent animate-pulse" 
+                  : "bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200"
+              )}
+            >
+              <Mic className="w-5 h-5" />
+            </Button>
+          </div>
         </form>
       </DialogContent>
     </Dialog>
