@@ -13,15 +13,13 @@ import { suggestCategoryAndWallet } from '@/app/actions/ai'
 import { cn } from '@/lib/utils'
 import { DynamicIcon } from './DynamicIcon'
 import { Switch } from '@/components/ui/switch'
-import { Sparkles, Mic, MicOff, Loader2 } from 'lucide-react'
-import { useSpeechRecognition } from '@/hooks/use-speech-recognition'
+import { Sparkles, Loader2 } from 'lucide-react'
 import type { PaymentMethod, TransactionType, Transaction } from '@/lib/types'
 
 interface Props { 
   open: boolean; 
   onClose: () => void;
   initialData?: Transaction | null;
-  startWithVoice?: boolean;
 }
 
 const PAYMENT_METHODS: { value: PaymentMethod; label: string }[] = [
@@ -30,7 +28,7 @@ const PAYMENT_METHODS: { value: PaymentMethod; label: string }[] = [
   { value: 'bank_transfer', label: 'Bank Transfer' },
 ]
 
-export function AddTransactionModal({ open, onClose, initialData, startWithVoice }: Props) {
+export function AddTransactionModal({ open, onClose, initialData }: Props) {
   const qc = useQueryClient()
   const isEdit = !!initialData
 
@@ -47,14 +45,6 @@ export function AddTransactionModal({ open, onClose, initialData, startWithVoice
   const [isRecurring, setIsRecurring] = useState(false)
   const [recurrenceDay, setRecurrenceDay] = useState('')
   const [error, setError]       = useState('')
-
-  const { isListening, transcript, startListening, stopListening, isSupported } = useSpeechRecognition()
-
-  useEffect(() => {
-    if (isListening && transcript) {
-      setDesc(transcript)
-    }
-  }, [transcript, isListening])
 
   useEffect(() => {
     if (open) {
@@ -76,16 +66,12 @@ export function AddTransactionModal({ open, onClose, initialData, startWithVoice
         setDate(new Date().toISOString().split('T')[0])
         setIsRecurring(false)
         setRecurrenceDay('')
-        if (startWithVoice && isSupported) {
-          setTimeout(() => startListening(), 100)
-        }
       }
       setError('')
     } else {
-      stopListening()
       setDesc('')
     }
-  }, [open, initialData, startWithVoice, isSupported, startListening, stopListening])
+  }, [open, initialData])
 
   const [isCategorizing, setIsCategorizing] = useState(false)
 
@@ -404,36 +390,13 @@ export function AddTransactionModal({ open, onClose, initialData, startWithVoice
 
           {error && <p className="text-xs text-rose-400">{error}</p>}
 
-          <div className="flex gap-2">
-            <Button
-              type="submit"
-              disabled={mutation.isPending}
-              className="flex-1 h-12 text-sm font-semibold bg-zinc-50 text-zinc-900 hover:bg-white rounded-xl"
-            >
-              {mutation.isPending ? 'Saving…' : isEdit ? 'Save Changes' : 'Add Transaction'}
-            </Button>
-            
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              onClick={() => {
-                if (!isSupported) {
-                  setError('Voice recognition is not supported in this browser.')
-                  return
-                }
-                isListening ? stopListening() : startListening()
-              }}
-              className={cn(
-                "h-12 w-12 rounded-xl border-zinc-700 shrink-0 transition-colors",
-                isListening 
-                  ? "bg-rose-500 hover:bg-rose-600 text-white border-transparent animate-pulse" 
-                  : "bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200"
-              )}
-            >
-              <Mic className="w-5 h-5" />
-            </Button>
-          </div>
+          <Button
+            type="submit"
+            disabled={mutation.isPending}
+            className="w-full h-12 text-sm font-semibold bg-zinc-50 text-zinc-900 hover:bg-white rounded-xl"
+          >
+            {mutation.isPending ? 'Saving…' : isEdit ? 'Save Changes' : 'Add Transaction'}
+          </Button>
         </form>
       </DialogContent>
     </Dialog>

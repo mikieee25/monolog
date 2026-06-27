@@ -13,19 +13,16 @@ import { ManageCategoriesModal } from './ManageCategoriesModal'
 import { CalendarView } from './CalendarView'
 import { AiNudge } from './AiNudge'
 import { SubscriptionRadar } from './SubscriptionRadar'
+import { VoiceTransactionModal } from './VoiceTransactionModal'
 
 type Modal = 'transaction' | 'wallets' | 'categories' | null
 
 export function Dashboard() {
-  const [activeModal, setActiveModal] = useState<Modal>(null)
-  const [startWithVoice, setStartWithVoice] = useState(false)
+  const [activeModal, setActiveModal] = useState<Modal | 'voice'>(null)
   const [view, setView] = useState<'feed' | 'calendar'>('feed')
   const [aiMessage, setAiMessage] = useState<{message: string, type: 'success' | 'error' | 'loading'} | null>(null)
   const [isAiLoading, setIsAiLoading] = useState(false)
-  const close = () => {
-    setActiveModal(null)
-    setTimeout(() => setStartWithVoice(false), 200)
-  }
+  const close = () => setActiveModal(null)
 
   useEffect(() => {
     processRecurringTransactions().catch(console.error)
@@ -68,10 +65,7 @@ export function Dashboard() {
         {/* Balance + spending summary */}
         <BalanceSummary 
           onAddTransaction={() => setActiveModal('transaction')} 
-          onAddWithVoice={() => {
-            setStartWithVoice(true)
-            setActiveModal('transaction')
-          }}
+          onAddWithVoice={() => setActiveModal('voice')}
         />
 
         <div className="px-5 md:px-0 mt-4 md:mt-6">
@@ -151,7 +145,8 @@ export function Dashboard() {
       </div>
 
       {/* Modals */}
-      <AddTransactionModal     open={activeModal === 'transaction'} onClose={close} startWithVoice={startWithVoice} />
+      <AddTransactionModal     open={activeModal === 'transaction'} onClose={close} />
+      <VoiceTransactionModal   open={activeModal === 'voice'}       onClose={close} />
       <ManageWalletsModal      open={activeModal === 'wallets'}     onClose={close} />
       <ManageCategoriesModal   open={activeModal === 'categories'}  onClose={close} />
     </div>
