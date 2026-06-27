@@ -9,21 +9,19 @@ import { Label } from '@/components/ui/label'
 import { keys } from '@/lib/query-keys'
 import { getCategories, addCategory, updateCategory, deleteCategory } from '@/app/actions'
 import { cn } from '@/lib/utils'
-import { EmojiPicker } from './EmojiPicker'
+import { IconPicker } from './IconPicker'
+import { DynamicIcon, EXPENSE_ICONS, INCOME_ICONS } from './DynamicIcon'
 import { PlusIcon, Edit2, Trash2, Check, X } from 'lucide-react'
 import type { CategoryType, Category } from '@/lib/types'
 
 interface Props { open: boolean; onClose: () => void }
-
-const EXPENSE_EMOJIS = ['🍔', '🚗', '🏠', '💡', '🛍️', '🏥', '🎬', '📚', '✈️', '💊']
-const INCOME_EMOJIS  = ['💼', '💻', '🏢', '💰', '📈', '🎁', '🤝', '🏆', '💵', '🌱']
 
 export function ManageCategoriesModal({ open, onClose }: Props) {
   const qc = useQueryClient()
   const { data: categories } = useSuspenseQuery({ queryKey: keys.categories(), queryFn: () => getCategories() })
 
   const [name,   setName]   = useState('')
-  const [emoji,  setEmoji]  = useState('📦')
+  const [emoji,  setEmoji]  = useState('ShoppingCart')
   const [type,   setType]   = useState<CategoryType>('expense')
   const [error,  setError]  = useState('')
   const [adding, setAdding] = useState(false)
@@ -35,7 +33,7 @@ export function ManageCategoriesModal({ open, onClose }: Props) {
     mutationFn: addCategory,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: keys.categories() })
-      setName(''); setEmoji('📦'); setAdding(false)
+      setName(''); setEmoji('ShoppingCart'); setAdding(false)
     },
     onError: () => setError('Failed to add category.'),
   })
@@ -91,7 +89,7 @@ export function ManageCategoriesModal({ open, onClose }: Props) {
                 <button
                   key={t}
                   type="button"
-                  onClick={() => { setType(t); setEmoji(t === 'expense' ? '📦' : '💰') }}
+                  onClick={() => { setType(t); setEmoji(t === 'expense' ? 'ShoppingCart' : 'Briefcase') }}
                   className={cn(
                     'flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all capitalize',
                     type === t
@@ -106,10 +104,10 @@ export function ManageCategoriesModal({ open, onClose }: Props) {
 
             <div>
               <Label className="text-xs text-zinc-400 mb-1 block">Icon</Label>
-              <EmojiPicker
+              <IconPicker
                 selected={emoji}
                 onSelect={setEmoji}
-                presets={type === 'expense' ? EXPENSE_EMOJIS : INCOME_EMOJIS}
+                presets={type === 'expense' ? EXPENSE_ICONS : INCOME_ICONS}
               />
             </div>
 
@@ -174,49 +172,57 @@ function CategoryRow({ category }: { category: Category }) {
 
   if (isEditing) {
     return (
-      <div className="flex items-center gap-2 p-1.5 bg-zinc-800/50 rounded-xl border border-zinc-700">
-        <Input 
-          value={emoji} 
-          onChange={e => setEmoji(e.target.value)} 
-          className="w-10 h-8 text-center bg-zinc-900 border-zinc-700 text-zinc-50 shrink-0 px-0" 
-          placeholder="📦"
-        />
-        <Input 
-          value={name} 
-          onChange={e => setName(e.target.value)} 
-          className="flex-1 h-8 bg-zinc-900 border-zinc-700 text-zinc-50" 
-        />
-        <Button 
-          size="icon" 
-          variant="ghost" 
-          className="w-8 h-8 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-400/10 shrink-0" 
-          onClick={() => {
-            if (name.trim()) {
-              updateMut.mutate({ id: category.id, name: name.trim(), emoji })
-            }
-          }}
-        >
-          <Check className="w-4 h-4" />
-        </Button>
-        <Button 
-          size="icon" 
-          variant="ghost" 
-          className="w-8 h-8 text-zinc-400 hover:text-zinc-300 hover:bg-zinc-700 shrink-0" 
-          onClick={() => {
-            setIsEditing(false)
-            setName(category.name)
-            setEmoji(category.emoji)
-          }}
-        >
-          <X className="w-4 h-4" />
-        </Button>
+      <div className="flex flex-col gap-2 p-1.5 bg-zinc-800/50 rounded-xl border border-zinc-700">
+        <div className="flex items-center gap-2">
+          <div className="w-10 h-8 flex items-center justify-center bg-zinc-900 border border-zinc-700 rounded-md shrink-0">
+            <DynamicIcon name={emoji} className="w-4 h-4 text-zinc-400" />
+          </div>
+          <Input 
+            value={name} 
+            onChange={e => setName(e.target.value)} 
+            className="flex-1 h-8 bg-zinc-900 border-zinc-700 text-zinc-50" 
+          />
+          <Button 
+            size="icon" 
+            variant="ghost" 
+            className="w-8 h-8 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-400/10 shrink-0" 
+            onClick={() => {
+              if (name.trim()) {
+                updateMut.mutate({ id: category.id, name: name.trim(), emoji })
+              }
+            }}
+          >
+            <Check className="w-4 h-4" />
+          </Button>
+          <Button 
+            size="icon" 
+            variant="ghost" 
+            className="w-8 h-8 text-zinc-400 hover:text-zinc-300 hover:bg-zinc-700 shrink-0" 
+            onClick={() => {
+              setIsEditing(false)
+              setName(category.name)
+              setEmoji(category.emoji)
+            }}
+          >
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
+        <div className="px-0.5 pb-1">
+          <IconPicker
+            selected={emoji}
+            onSelect={setEmoji}
+            presets={category.type === 'expense' ? EXPENSE_ICONS : INCOME_ICONS}
+          />
+        </div>
       </div>
     )
   }
 
   return (
     <div className="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-zinc-800/50 group transition-colors">
-      <span className="text-base shrink-0">{category.emoji}</span>
+      <div className="w-8 h-8 rounded-md bg-zinc-800 flex items-center justify-center shrink-0">
+        <DynamicIcon name={category.emoji} className="w-4 h-4 text-zinc-100" />
+      </div>
       <span className="text-sm text-zinc-200 flex-1 min-w-0 truncate">{category.name}</span>
       
       <div className="flex items-center gap-0.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity shrink-0">

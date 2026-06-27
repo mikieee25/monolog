@@ -41,3 +41,17 @@ export interface DashboardData {
   monthlySpending: number
   transactions: Transaction[]
 }
+
+export interface RecurringTransaction {
+  id: string
+  user_id: string
+  account_id: string | null
+  category_id: string | null
+  amount: number
+  type: TransactionType
+  payment_method: PaymentMethod
+  description: string | null
+  recurrence_day: number
+  last_processed: string | null
+  created_at: string
+}

@@ -9,8 +9,9 @@ import { Label } from '@/components/ui/label'
 import { keys } from '@/lib/query-keys'
 import { getAccounts, addAccount, updateAccount, deleteAccount } from '@/app/actions'
 import { formatCurrency } from '@/lib/utils'
-import { EmojiPicker } from './EmojiPicker'
-import { PlusIcon, Edit2, Trash2, Check, X } from 'lucide-react'
+import { IconPicker } from './IconPicker'
+import { DynamicIcon, WALLET_ICONS } from './DynamicIcon'
+import { PlusIcon, Edit2, Trash2, Check, X, Wallet } from 'lucide-react'
 import type { Account } from '@/lib/types'
 
 interface Props { open: boolean; onClose: () => void }
@@ -20,7 +21,7 @@ export function ManageWalletsModal({ open, onClose }: Props) {
   const { data: accounts } = useSuspenseQuery({ queryKey: keys.accounts, queryFn: getAccounts })
 
   const [name,    setName]    = useState('')
-  const [emoji,   setEmoji]   = useState('💳')
+  const [emoji,   setEmoji]   = useState('Wallet')
   const [balance, setBalance] = useState('')
   const [error,   setError]   = useState('')
   const [adding,  setAdding]  = useState(false)
@@ -30,7 +31,7 @@ export function ManageWalletsModal({ open, onClose }: Props) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: keys.accounts })
       qc.invalidateQueries({ queryKey: keys.balance })
-      setName(''); setEmoji('💳'); setBalance(''); setAdding(false)
+      setName(''); setEmoji('Wallet'); setBalance(''); setAdding(false)
     },
     onError: () => setError('Failed to add account.'),
   })
@@ -77,10 +78,10 @@ export function ManageWalletsModal({ open, onClose }: Props) {
 
             <div>
               <Label className="text-xs text-zinc-400 mb-1 block">Icon</Label>
-              <EmojiPicker
+              <IconPicker
                 selected={emoji}
                 onSelect={setEmoji}
-                presets={['💳', '💵', '🏦', '💰', '🪙', '💼', '🏧', '📱', '💴', '💶']}
+                presets={WALLET_ICONS}
               />
             </div>
 
@@ -161,16 +162,20 @@ function AccountRow({ account }: { account: Account }) {
     return (
       <div className="flex flex-col gap-2 p-2 bg-zinc-800/50 rounded-xl border border-zinc-700">
         <div className="flex gap-2">
-          <Input 
-            value={emoji} 
-            onChange={e => setEmoji(e.target.value)} 
-            className="w-12 h-9 text-center bg-zinc-900 border-zinc-700 text-zinc-50 shrink-0" 
-            placeholder="💸"
-          />
+          <div className="w-12 h-9 flex items-center justify-center bg-zinc-900 border border-zinc-700 rounded-md shrink-0">
+            <DynamicIcon name={emoji} className="w-4 h-4 text-zinc-400" />
+          </div>
           <Input 
             value={name} 
             onChange={e => setName(e.target.value)} 
             className="flex-1 h-9 bg-zinc-900 border-zinc-700 text-zinc-50" 
+          />
+        </div>
+        <div className="px-1 py-1">
+          <IconPicker
+            selected={emoji}
+            onSelect={setEmoji}
+            presets={WALLET_ICONS}
           />
         </div>
         <div className="flex gap-2">
@@ -215,7 +220,9 @@ function AccountRow({ account }: { account: Account }) {
 
   return (
     <div className="flex items-center gap-3 py-2.5 px-3 rounded-xl hover:bg-zinc-800/50 group transition-colors">
-      <span className="text-2xl">{account.emoji}</span>
+      <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center shrink-0">
+        <DynamicIcon name={account.emoji} className="w-5 h-5 text-zinc-100" />
+      </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-zinc-100 truncate">{account.name}</p>
         <p className="text-xs font-semibold tabular-nums text-zinc-400">

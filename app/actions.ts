@@ -137,6 +137,8 @@ export async function addTransaction(input: {
   account_id: string
   payment_method: PaymentMethod
   date: string
+  is_recurring?: boolean
+  recurrence_day?: number
 }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -157,6 +159,24 @@ export async function addTransaction(input: {
     })
 
   if (txError) throw txError
+
+  // Insert recurring template if requested
+  if (input.is_recurring && input.recurrence_day) {
+    const { error: recurError } = await supabase
+      .from('recurring_transactions')
+      .insert({
+        user_id: user.id,
+        amount: input.amount,
+        type: input.type,
+        description: input.description || null,
+        category_id: input.category_id,
+        account_id: input.account_id,
+        payment_method: input.payment_method,
+        recurrence_day: input.recurrence_day,
+        last_processed: input.date // since we just added the initial transaction for this date
+      })
+    if (recurError) throw recurError
+  }
 
   // Update account balance
   const { data: account, error: accountFetchError } = await supabase
@@ -330,3 +350,74 @@ export async function deleteAccount(id: string) {
   if (error) throw error
   revalidatePath('/')
 }
+
+// ─── Recurring Transactions ──────────────────────────────────────────────────
+
+export async function processRecurringTransactions() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return
+
+  const { data: recurrings, error } = await supabase
+    .from('recurring_transactions')
+    .select('*')
+    .eq('user_id', user.id)
+
+  if (error || !recurrings || recurrings.length === 0) return
+
+  const now = new Date()
+
+  for (const rt of recurrings) {
+    const created = new Date(rt.created_at)
+    const start = rt.last_processed ? new Date(rt.last_processed) : created
+    const check = new Date(start.getFullYear(), start.getMonth(), 1)
+    
+    let latestProcessed = rt.last_processed
+
+    while (
+      check.getFullYear() < now.getFullYear() || 
+      (check.getFullYear() === now.getFullYear() && check.getMonth() <= now.getMonth())
+    ) {
+      const cy = check.getFullYear()
+      const cm = check.getMonth()
+      
+      const lastDay = new Date(cy, cm + 1, 0).getDate()
+      const rDay = Math.min(rt.recurrence_day, lastDay)
+      const rDate = new Date(cy, cm, rDay)
+      
+      if (rDate <= now && rDate > start) {
+        const rDateStr = [cy, String(cm + 1).padStart(2, '0'), String(rDay).padStart(2, '0')].join('-')
+        
+        const { error: txError } = await supabase.from('transactions').insert({
+          user_id: user.id,
+          account_id: rt.account_id,
+          category_id: rt.category_id,
+          amount: rt.amount,
+          type: rt.type,
+          payment_method: rt.payment_method,
+          description: rt.description ? `${rt.description} (Auto)` : 'Automatic Recurring',
+          date: rDateStr
+        })
+
+        if (!txError) {
+          latestProcessed = rDateStr
+          
+          if (rt.account_id) {
+            const delta = rt.type === 'income' ? Number(rt.amount) : -Number(rt.amount)
+            const { data: acc } = await supabase.from('accounts').select('balance').eq('id', rt.account_id).single()
+            if (acc) {
+              await supabase.from('accounts').update({ balance: Number(acc.balance) + delta }).eq('id', rt.account_id)
+            }
+          }
+        }
+      }
+      
+      check.setMonth(check.getMonth() + 1)
+    }
+
+    if (latestProcessed !== rt.last_processed) {
+      await supabase.from('recurring_transactions').update({ last_processed: latestProcessed }).eq('id', rt.id)
+    }
+  }
+}
+

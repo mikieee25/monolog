@@ -1,18 +1,26 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { cn } from '@/lib/utils'
+import { processRecurringTransactions } from '@/app/actions'
 import { BalanceSummary } from './BalanceSummary'
 import { TransactionFeed } from './TransactionFeed'
 import { QuickActionsBar } from './QuickActionsBar'
 import { AddTransactionModal } from './AddTransactionModal'
 import { ManageWalletsModal } from './ManageWalletsModal'
 import { ManageCategoriesModal } from './ManageCategoriesModal'
+import { CalendarView } from './CalendarView'
 
 type Modal = 'transaction' | 'wallets' | 'categories' | null
 
 export function Dashboard() {
   const [activeModal, setActiveModal] = useState<Modal>(null)
+  const [view, setView] = useState<'feed' | 'calendar'>('feed')
   const close = () => setActiveModal(null)
+
+  useEffect(() => {
+    processRecurringTransactions().catch(console.error)
+  }, [])
 
   return (
     <div className="flex flex-col md:flex-row md:gap-12 lg:gap-16 min-h-dvh pb-24 md:pb-12 md:pt-16 md:px-8">
@@ -66,11 +74,23 @@ export function Dashboard() {
       {/* Right Column (Desktop) / Bottom Section (Mobile) */}
       <div className="flex-1 px-5 md:p-8 flex flex-col md:bg-zinc-900/30 md:backdrop-blur-xl md:border md:border-zinc-800/60 md:rounded-3xl md:shadow-2xl">
         <div className="flex items-center justify-between mb-4 md:mb-6">
-          <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">
-            Recent Transactions
-          </p>
+          <div className="flex bg-zinc-800/50 p-1 rounded-xl">
+            <button 
+              onClick={() => setView('feed')} 
+              className={cn("px-4 py-1.5 text-xs font-semibold rounded-lg transition-all", view === 'feed' ? "bg-zinc-700 text-zinc-100 shadow" : "text-zinc-400 hover:text-zinc-200")}
+            >
+              Feed
+            </button>
+            <button 
+              onClick={() => setView('calendar')} 
+              className={cn("px-4 py-1.5 text-xs font-semibold rounded-lg transition-all", view === 'calendar' ? "bg-zinc-700 text-zinc-100 shadow" : "text-zinc-400 hover:text-zinc-200")}
+            >
+              Calendar
+            </button>
+          </div>
         </div>
-        <TransactionFeed />
+        
+        {view === 'feed' ? <TransactionFeed /> : <CalendarView />}
       </div>
 
       {/* Fixed bottom action bar (Mobile Only) */}

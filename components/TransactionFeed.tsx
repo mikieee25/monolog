@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { AddTransactionModal } from '@/components/AddTransactionModal'
 
+import { DynamicIcon } from './DynamicIcon'
+
 /** Group transactions by their date string */
 function groupByDate(txs: Transaction[]): Map<string, Transaction[]> {
   const map = new Map<string, Transaction[]>()
@@ -38,7 +40,7 @@ export function TransactionFeed() {
   if (!transactions || transactions.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
-        <span className="text-4xl mb-3">🪙</span>
+        <DynamicIcon name="Coins" className="w-10 h-10 mb-3 text-zinc-500" />
         <p className="text-sm text-zinc-500">No transactions yet.</p>
         <p className="text-xs text-zinc-600 mt-1">Tap + to add your first one.</p>
       </div>
@@ -90,7 +92,7 @@ function TransactionRow({ tx, onEdit }: { tx: Transaction, onEdit: () => void })
     <div className="flex items-center gap-3 py-3 px-3 rounded-xl hover:bg-zinc-900 transition-colors active:scale-[0.98]">
       {/* Emoji icon */}
       <div className="flex-shrink-0 w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center text-lg">
-        {tx.category?.emoji ?? '💸'}
+        <DynamicIcon name={tx.category?.emoji || 'CircleDollarSign'} className="w-5 h-5 text-zinc-100" />
       </div>
 
       {/* Middle: category + description */}
@@ -121,12 +123,10 @@ function TransactionRow({ tx, onEdit }: { tx: Transaction, onEdit: () => void })
         </span>
         
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button className="p-1.5 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-zinc-600">
-              <MoreHorizontal className="w-4 h-4" />
-            </button>
+          <DropdownMenuTrigger className="p-1.5 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 rounded-md transition-colors outline-none cursor-pointer">
+            <MoreHorizontal className="w-4 h-4" />
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="bg-zinc-900 border-zinc-800 text-zinc-300 min-w-[140px]">
+          <DropdownMenuContent align="end" className="w-40 bg-zinc-800 border-zinc-700 text-zinc-100">
             <DropdownMenuItem 
               onClick={onEdit}
               className="hover:bg-zinc-800 focus:bg-zinc-800 focus:text-zinc-50 cursor-pointer"

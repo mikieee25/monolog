@@ -4,6 +4,8 @@ import { keys } from '@/lib/query-keys'
 import { getBalance, getMonthlySpending, getRecentTransactions, getAccounts, getCategories } from './actions'
 import { Dashboard } from '@/components/Dashboard'
 
+export const dynamic = 'force-dynamic'
+
 // SSR: prefetch all data so the first paint is instantaneous
 export default async function Page() {
   const queryClient = getQueryClient()

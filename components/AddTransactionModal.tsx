@@ -10,6 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { keys } from '@/lib/query-keys'
 import { getAccounts, getCategories, addTransaction, updateTransaction } from '@/app/actions'
 import { cn } from '@/lib/utils'
+import { DynamicIcon } from './DynamicIcon'
+import { Switch } from '@/components/ui/switch'
 import type { PaymentMethod, TransactionType, Transaction } from '@/lib/types'
 
 interface Props { 
@@ -38,6 +40,8 @@ export function AddTransactionModal({ open, onClose, initialData }: Props) {
   const [accountId,  setAccountId]  = useState('')
   const [payment,    setPayment]    = useState<PaymentMethod>('cash')
   const [date, setDate]         = useState(new Date().toISOString().split('T')[0])
+  const [isRecurring, setIsRecurring] = useState(false)
+  const [recurrenceDay, setRecurrenceDay] = useState('')
   const [error, setError]       = useState('')
 
   useEffect(() => {
@@ -58,6 +62,8 @@ export function AddTransactionModal({ open, onClose, initialData }: Props) {
         setAccountId('')
         setPayment('cash')
         setDate(new Date().toISOString().split('T')[0])
+        setIsRecurring(false)
+        setRecurrenceDay('')
       }
       setError('')
     }
@@ -140,8 +146,27 @@ export function AddTransactionModal({ open, onClose, initialData }: Props) {
     if (isNaN(parsed) || parsed <= 0) return setError('Enter a valid amount.')
     if (!categoryId) return setError('Select a category.')
     if (!accountId)  return setError('Select an account.')
+    
+    let parsedDay: number | undefined = undefined
+    if (isRecurring && !isEdit) {
+      parsedDay = parseInt(recurrenceDay, 10)
+      if (isNaN(parsedDay) || parsedDay < 1 || parsedDay > 31) {
+        return setError('Enter a valid day of the month (1-31) for the recurring transaction.')
+      }
+    }
+    
     setError('')
-    mutation.mutate({ amount: parsed, type, description: desc, category_id: categoryId, account_id: accountId, payment_method: payment, date })
+    mutation.mutate({ 
+      amount: parsed, 
+      type, 
+      description: desc, 
+      category_id: categoryId, 
+      account_id: accountId, 
+      payment_method: payment, 
+      date,
+      is_recurring: isRecurring && !isEdit,
+      recurrence_day: parsedDay
+    })
   }
 
   return (
@@ -194,7 +219,7 @@ export function AddTransactionModal({ open, onClose, initialData }: Props) {
               <SelectTrigger className="bg-zinc-800 border-zinc-700 text-zinc-50">
                 {categoryId ? (
                   <span className="truncate flex items-center gap-2">
-                    {filteredCategories.find(c => c.id === categoryId)?.emoji}
+                    <DynamicIcon name={filteredCategories.find(c => c.id === categoryId)?.emoji || ''} className="w-4 h-4 text-zinc-400" />
                     {filteredCategories.find(c => c.id === categoryId)?.name}
                   </span>
                 ) : (
@@ -204,7 +229,10 @@ export function AddTransactionModal({ open, onClose, initialData }: Props) {
               <SelectContent className="bg-zinc-800 border-zinc-700">
                 {filteredCategories.map(c => (
                   <SelectItem key={c.id} value={c.id} className="text-zinc-100">
-                    {c.emoji} {c.name}
+                    <div className="flex items-center gap-2">
+                      <DynamicIcon name={c.emoji} className="w-4 h-4 text-zinc-400" />
+                      {c.name}
+                    </div>
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -218,7 +246,7 @@ export function AddTransactionModal({ open, onClose, initialData }: Props) {
               <SelectTrigger className="bg-zinc-800 border-zinc-700 text-zinc-50">
                 {accountId ? (
                   <span className="truncate flex items-center gap-2">
-                    {accounts.find(a => a.id === accountId)?.emoji}
+                    <DynamicIcon name={accounts.find(a => a.id === accountId)?.emoji || ''} className="w-4 h-4 text-zinc-400" />
                     {accounts.find(a => a.id === accountId)?.name}
                   </span>
                 ) : (
@@ -228,7 +256,10 @@ export function AddTransactionModal({ open, onClose, initialData }: Props) {
               <SelectContent className="bg-zinc-800 border-zinc-700">
                 {accounts.map(a => (
                   <SelectItem key={a.id} value={a.id} className="text-zinc-100">
-                    {a.emoji} {a.name}
+                    <div className="flex items-center gap-2">
+                      <DynamicIcon name={a.emoji} className="w-4 h-4 text-zinc-400" />
+                      {a.name}
+                    </div>
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -278,6 +309,32 @@ export function AddTransactionModal({ open, onClose, initialData }: Props) {
               className="bg-zinc-800 border-zinc-700 text-zinc-50"
             />
           </div>
+
+          {/* Recurring Toggle (Only for New) */}
+          {!isEdit && (
+            <div className="flex items-center justify-between bg-zinc-800 p-3 rounded-xl border border-zinc-700">
+              <div className="space-y-0.5">
+                <Label className="text-sm font-semibold text-zinc-200">Recurring Transaction</Label>
+                <p className="text-xs text-zinc-400">Automatically repeat this every month</p>
+              </div>
+              <Switch checked={isRecurring} onCheckedChange={setIsRecurring} />
+            </div>
+          )}
+
+          {isRecurring && !isEdit && (
+            <div>
+              <Label className="text-xs text-zinc-400 mb-1 block">Day of the month (1-31)</Label>
+              <Input
+                type="number"
+                min="1" max="31"
+                value={recurrenceDay}
+                onChange={e => setRecurrenceDay(e.target.value)}
+                className="bg-zinc-800 border-zinc-700 text-zinc-50"
+                required={isRecurring}
+                placeholder="e.g., 15"
+              />
+            </div>
+          )}
 
           {error && <p className="text-xs text-rose-400">{error}</p>}
 
