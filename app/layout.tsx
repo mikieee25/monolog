@@ -11,6 +11,14 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 export const metadata: Metadata = {
   title: 'Monolog',
   description: 'Personal expense tracker',
+  icons: {
+    icon: [
+      { url: '/favicon.ico' },
+      { url: '/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
+    ],
+    shortcut: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
@@ -36,9 +44,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={cn("dark", "font-sans", geist.variable)}>
-      <head>
-        <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-180.png" />
-      </head>
+
       <body className={`${inter.variable} font-sans antialiased bg-zinc-950 text-zinc-50`}>
         <QueryProvider>
           {/* iPhone-width shell — feels native on desktop too */}
