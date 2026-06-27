@@ -29,14 +29,8 @@ export function CalendarView() {
   const nextMonth = () => setCurrentDate(new Date(year, month + 1, 1))
   const prevMonth = () => setCurrentDate(new Date(year, month - 1, 1))
 
-  if (isLoading || !allTransactions) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 text-center animate-pulse">
-        <div className="w-10 h-10 mb-3 bg-zinc-800 rounded-full" />
-        <p className="text-sm text-zinc-500">Loading calendar...</p>
-      </div>
-    )
-  }
+  // Selected Day State
+  const [selectedDay, setSelectedDay] = useState<number | null>(null)
 
   // Calculate daily totals for this month
   const dailyTotals = useMemo(() => {
@@ -46,20 +40,31 @@ export function CalendarView() {
       totals[i] = { income: 0, expense: 0, txs: [] }
     }
 
-    allTransactions.forEach(tx => {
-      const txDate = new Date(tx.date)
-      if (txDate.getFullYear() === year && txDate.getMonth() === month) {
-        const day = txDate.getDate()
-        if (totals[day]) {
-          totals[day].txs.push(tx)
-          if (tx.type === 'income') totals[day].income += Number(tx.amount)
-          else totals[day].expense += Number(tx.amount)
+    if (allTransactions) {
+      allTransactions.forEach(tx => {
+        const txDate = new Date(tx.date)
+        if (txDate.getFullYear() === year && txDate.getMonth() === month) {
+          const day = txDate.getDate()
+          if (totals[day]) {
+            totals[day].txs.push(tx)
+            if (tx.type === 'income') totals[day].income += Number(tx.amount)
+            else totals[day].expense += Number(tx.amount)
+          }
         }
-      }
-    })
+      })
+    }
     
     return totals
   }, [allTransactions, year, month, daysInMonth])
+
+  if (isLoading || !allTransactions) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center animate-pulse">
+        <div className="w-10 h-10 mb-3 bg-zinc-800 rounded-full" />
+        <p className="text-sm text-zinc-500">Loading calendar...</p>
+      </div>
+    )
+  }
 
   // Aggregate monthly stats
   let totalIncome = 0
@@ -69,9 +74,6 @@ export function CalendarView() {
     totalExpense += day.expense
   })
   const netSavings = totalIncome - totalExpense
-
-  // Selected Day State
-  const [selectedDay, setSelectedDay] = useState<number | null>(null)
 
   return (
     <div className="space-y-6">
