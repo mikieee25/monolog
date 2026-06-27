@@ -12,6 +12,7 @@ import { ManageWalletsModal } from './ManageWalletsModal'
 import { ManageCategoriesModal } from './ManageCategoriesModal'
 import { CalendarView } from './CalendarView'
 import { AiNudge } from './AiNudge'
+import { SubscriptionRadar } from './SubscriptionRadar'
 
 type Modal = 'transaction' | 'wallets' | 'categories' | null
 
@@ -69,6 +70,10 @@ export function Dashboard() {
           ) : aiMessage ? (
             <AiNudge message={aiMessage.message} type={aiMessage.type} onDismiss={handleDismissNudge} />
           ) : null}
+        </div>
+
+        <div className="mt-4 md:mt-6 md:px-0">
+          <SubscriptionRadar />
         </div>
 
         {/* Divider (Mobile Only) */}

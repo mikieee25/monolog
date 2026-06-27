@@ -421,3 +421,79 @@ export async function processRecurringTransactions() {
   }
 }
 
+export async function getUpcomingRecurringTransactions(days = 14) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return []
+
+  const { data: recurrings } = await supabase
+    .from('recurring_transactions')
+    .select('*, category:categories(name, emoji, type)')
+    .eq('user_id', user.id)
+
+  if (!recurrings) return []
+
+  const now = new Date()
+  now.setHours(0, 0, 0, 0) // start of today
+  const upcoming = []
+
+  for (const rt of recurrings) {
+    const rDay = Math.min(rt.recurrence_day, new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate())
+    let rDate = new Date(now.getFullYear(), now.getMonth(), rDay)
+    
+    // If it already passed this month, look at next month
+    if (rDate < now) {
+      const nextMonthLastDay = new Date(now.getFullYear(), now.getMonth() + 2, 0).getDate()
+      const nextMonthDay = Math.min(rt.recurrence_day, nextMonthLastDay)
+      rDate = new Date(now.getFullYear(), now.getMonth() + 1, nextMonthDay)
+    }
+
+    const diffDays = Math.ceil((rDate.getTime() - now.getTime()) / (1000 * 3600 * 24))
+    
+    if (diffDays <= days) {
+      upcoming.push({
+        ...rt,
+        due_date: rDate.toISOString(),
+        days_until: diffDays
+      })
+    }
+  }
+
+  return upcoming.sort((a, b) => a.days_until - b.days_until)
+}
+
+export async function getProjectedEndOfMonthBalance() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return 0
+
+  const { data: accounts } = await supabase.from('accounts').select('balance').eq('user_id', user.id)
+  let currentBalance = accounts?.reduce((sum, a) => sum + Number(a.balance), 0) || 0
+
+  const { data: recurrings } = await supabase
+    .from('recurring_transactions')
+    .select('*')
+    .eq('user_id', user.id)
+
+  if (!recurrings) return currentBalance
+
+  const now = new Date()
+  now.setHours(0, 0, 0, 0)
+  const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+  
+  for (const rt of recurrings) {
+    const rDay = Math.min(rt.recurrence_day, lastDayOfMonth.getDate())
+    const rDate = new Date(now.getFullYear(), now.getMonth(), rDay)
+    
+    // If it hasn't happened yet this month, factor it into the projection
+    if (rDate >= now) {
+      if (rt.type === 'expense') {
+        currentBalance -= Number(rt.amount)
+      } else {
+        currentBalance += Number(rt.amount)
+      }
+    }
+  }
+
+  return currentBalance
+}
