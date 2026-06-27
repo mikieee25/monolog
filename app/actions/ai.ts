@@ -62,10 +62,10 @@ export async function getAiVibeCheck() {
       message: text,
       type: 'success'
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('AI Error:', error)
     return {
-      message: 'AI is taking a quick nap. Please try again later.',
+      message: `AI Error: ${error?.message || 'Unknown error'}`,
       type: 'error'
     }
   }
