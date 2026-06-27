@@ -21,7 +21,7 @@ export function QuickActionsBar({ onAdd, onWallets, onCategories }: Props) {
   }
 
   return (
-    <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-sm">
+    <div className="fixed bottom-0 left-0 right-0 mx-auto w-full max-w-sm z-50">
       {/* Frosted bottom bar */}
       <div className="bg-zinc-950/90 backdrop-blur-xl border-t border-zinc-800/60 flex items-center justify-around px-4 py-3 pb-safe">
         {actions.map(({ key, Icon, label, accent }) => (

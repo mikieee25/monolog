@@ -48,8 +48,8 @@ export default function RootLayout({
       <body className={`${inter.variable} font-sans antialiased bg-[#05050A] text-zinc-50`}>
         {/* Ambient Blurred Background Elements */}
         <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
-          <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full bg-blue-900/20 blur-[120px]" />
-          <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-purple-900/20 blur-[120px]" />
+          <div className="absolute top-[-10%] left-[-20%] md:left-[-10%] w-[80%] md:w-[60%] aspect-square rounded-full bg-blue-900/20 blur-[70px] md:blur-[120px] transform-gpu" />
+          <div className="absolute bottom-[-10%] right-[-20%] md:right-[-10%] w-[80%] md:w-[60%] aspect-square rounded-full bg-purple-900/20 blur-[70px] md:blur-[120px] transform-gpu" />
         </div>
 
         <QueryProvider>
