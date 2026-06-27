@@ -19,9 +19,6 @@ interface Props {
 export function VoiceTransactionModal({ open, onClose }: Props) {
   const qc = useQueryClient()
   
-  const { data: accounts }   = useQuery({ queryKey: keys.accounts,     queryFn: getAccounts })
-  const { data: categories } = useQuery({ queryKey: keys.categories(), queryFn: () => getCategories() })
-
   const { isListening, transcript, startListening, stopListening, isSupported, setTranscript } = useSpeechRecognition()
   
   const [status, setStatus] = useState<'idle' | 'listening' | 'processing' | 'success' | 'error'>('idle')
@@ -54,10 +51,23 @@ export function VoiceTransactionModal({ open, onClose }: Props) {
 
   const mutation = useMutation({
     mutationFn: async (text: string) => {
-      if (!accounts || !categories) throw new Error('Data not loaded yet')
+      // Get cached data or fetch it
+      let accountsData = qc.getQueryData<any[]>(keys.accounts)
+      if (!accountsData) {
+        accountsData = await qc.fetchQuery({ queryKey: keys.accounts, queryFn: getAccounts })
+      }
+      let categoriesData = qc.getQueryData<any[]>(keys.categories())
+      if (!categoriesData) {
+        categoriesData = await qc.fetchQuery({ queryKey: keys.categories(), queryFn: () => getCategories() })
+      }
+
+      if (!accountsData || !categoriesData) throw new Error('Could not load data')
         
+      const simplifiedCategories = categoriesData.map(c => ({ id: c.id, name: c.name }))
+      const simplifiedAccounts = accountsData.map(a => ({ id: a.id, name: a.name }))
+
       // 1. Categorize using AI
-      const aiResult = await suggestCategoryAndWallet(text, categories, accounts)
+      const aiResult = await suggestCategoryAndWallet(text, simplifiedCategories, simplifiedAccounts)
       if (!aiResult) throw new Error('Could not understand transaction')
       
       // 2. Add transaction
