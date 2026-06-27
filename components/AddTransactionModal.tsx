@@ -89,6 +89,9 @@ export function AddTransactionModal({ open, onClose, initialData }: Props) {
         if (suggestion.accountId) {
           setAccountId(suggestion.accountId)
         }
+        if (suggestion.amount !== null && !amount) {
+          setAmount(String(suggestion.amount))
+        }
       }
     } catch (e) {
       console.error(e)
