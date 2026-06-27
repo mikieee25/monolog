@@ -14,6 +14,7 @@ export function Dashboard() {
   const [activeModal, setActiveModal] = useState<Modal>(null)
   const close = () => setActiveModal(null)
 
+  return (
     <div className="flex flex-col md:flex-row md:gap-12 lg:gap-16 min-h-dvh pb-24 md:pb-12 md:pt-16 md:px-8">
       
       {/* Left Column (Desktop) / Top Section (Mobile) */}
