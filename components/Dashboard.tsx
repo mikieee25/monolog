@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 import { processRecurringTransactions } from '@/app/actions'
+import { getAiVibeCheck } from '@/app/actions/ai'
+import { db } from '@/lib/db'
 import { BalanceSummary } from './BalanceSummary'
 import { TransactionFeed } from './TransactionFeed'
 import { QuickActionsBar } from './QuickActionsBar'
@@ -10,17 +12,44 @@ import { AddTransactionModal } from './AddTransactionModal'
 import { ManageWalletsModal } from './ManageWalletsModal'
 import { ManageCategoriesModal } from './ManageCategoriesModal'
 import { CalendarView } from './CalendarView'
+import { AiNudge } from './AiNudge'
 
 type Modal = 'transaction' | 'wallets' | 'categories' | null
 
 export function Dashboard() {
   const [activeModal, setActiveModal] = useState<Modal>(null)
   const [view, setView] = useState<'feed' | 'calendar'>('feed')
+  const [aiMessage, setAiMessage] = useState<{message: string, type: 'success' | 'error' | 'loading'} | null>(null)
+  const [isAiLoading, setIsAiLoading] = useState(false)
   const close = () => setActiveModal(null)
 
   useEffect(() => {
     processRecurringTransactions().catch(console.error)
+    
+    // AI Vibe Check
+    const checkVibe = async () => {
+      if (sessionStorage.getItem('vibeCheckDismissed')) return
+      
+      setIsAiLoading(true)
+      try {
+        const recentTx = await db.transactions.orderBy('date').reverse().limit(10).toArray()
+        if (recentTx.length > 0) {
+          const result = await getAiVibeCheck(recentTx)
+          if (result) setAiMessage(result as any)
+        }
+      } catch (e) {
+        console.error(e)
+      } finally {
+        setIsAiLoading(false)
+      }
+    }
+    checkVibe()
   }, [])
+
+  const handleDismissNudge = () => {
+    sessionStorage.setItem('vibeCheckDismissed', 'true')
+    setAiMessage(null)
+  }
 
   return (
     <div className="flex flex-col md:flex-row md:gap-12 lg:gap-16 min-h-dvh pb-24 md:pb-12 md:pt-16 md:px-8">
@@ -37,6 +66,14 @@ export function Dashboard() {
 
         {/* Balance + spending summary */}
         <BalanceSummary onAddTransaction={() => setActiveModal('transaction')} />
+
+        <div className="px-5 md:px-0 mt-4 md:mt-6">
+          {isAiLoading ? (
+            <AiNudge message={null} type="loading" />
+          ) : aiMessage ? (
+            <AiNudge message={aiMessage.message} type={aiMessage.type} onDismiss={handleDismissNudge} />
+          ) : null}
+        </div>
 
         {/* Divider (Mobile Only) */}
         <div className="h-px bg-zinc-800 mx-5 my-4 md:hidden" />
