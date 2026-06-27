@@ -53,8 +53,8 @@ export default function RootLayout({
         </div>
 
         <QueryProvider>
-          {/* iPhone-width shell — feels native on desktop too */}
-          <div className="mx-auto max-w-sm min-h-dvh relative">
+          {/* Responsive shell */}
+          <div className="mx-auto w-full max-w-sm md:max-w-4xl lg:max-w-5xl min-h-dvh relative">
             {children}
           </div>
         </QueryProvider>
