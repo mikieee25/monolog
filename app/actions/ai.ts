@@ -105,15 +105,20 @@ export async function suggestCategoryAndWallet(
 
     Rules:
     1. If the description matches a category, select the Category ID.
-    2. If the description suggests a payment source (like "cash", "bank", "card", "gcash", etc.) that matches one of the accounts, select the Account ID.
+    2. If the description suggests a specific wallet account name, select the Account ID.
     3. If there is a numeric amount mentioned in the description (e.g. "150", "₱500", "Spent 200"), extract it as a number.
-    4. Return a JSON object with exactly this schema:
+    4. Determine the payment method based on terms like:
+       - "cash" -> "cash"
+       - "card", "cc", "visa", "mastercard", "credit", "debit" -> "card"
+       - "bank", "transfer", "gcash", "wire", "online" -> "bank_transfer"
+    5. Return a JSON object with exactly this schema:
     {
       "categoryId": "matched_category_id_or_null",
       "accountId": "matched_account_id_or_null",
+      "paymentMethod": "cash" | "card" | "bank_transfer" | null,
       "amount": matched_numeric_amount_or_null
     }
-    5. Do not include markdown code block syntax, just return the raw JSON object.
+    6. Do not include markdown code block syntax, just return the raw JSON object.
     `
 
     const result = await model.generateContent(prompt)
@@ -136,6 +141,7 @@ export async function suggestCategoryAndWallet(
     return {
       categoryId: parsed.categoryId || null,
       accountId: parsed.accountId || null,
+      paymentMethod: parsed.paymentMethod || null,
       amount: parsed.amount || null
     }
   } catch (error) {
