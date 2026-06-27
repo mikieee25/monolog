@@ -45,7 +45,13 @@ export default function RootLayout({
   return (
     <html lang="en" className={cn("dark", "font-sans", geist.variable)}>
 
-      <body className={`${inter.variable} font-sans antialiased bg-zinc-950 text-zinc-50`}>
+      <body className={`${inter.variable} font-sans antialiased bg-[#05050A] text-zinc-50`}>
+        {/* Ambient Blurred Background Elements */}
+        <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+          <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full bg-blue-900/15 blur-[120px]" />
+          <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-purple-900/15 blur-[120px]" />
+        </div>
+
         <QueryProvider>
           {/* iPhone-width shell — feels native on desktop too */}
           <div className="mx-auto max-w-sm min-h-dvh relative">
