@@ -1,69 +1,94 @@
 'use server'
 
-import { GoogleGenerativeAI } from '@google/generative-ai'
 import { createClient } from '@/lib/supabase/server'
 import type { Transaction } from '@/lib/types'
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '')
+async function callGroq(messages: { role: string; content: string }[], jsonMode = false) {
+  const apiKey = process.env.GROQ_API_KEY
+  if (!apiKey) {
+    throw new Error('Groq API key is missing. Please set GROQ_API_KEY in your environment variables.')
+  }
+
+  const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      model: 'llama-3.3-70b-versatile',
+      messages,
+      temperature: 0.1,
+      response_format: jsonMode ? { type: 'json_object' } : undefined
+    }),
+    next: { revalidate: 0 } // disable fetch caching
+  })
+
+  if (!response.ok) {
+    const errText = await response.text()
+    throw new Error(`Groq API error: ${response.status} ${response.statusText} - ${errText}`)
+  }
+
+  const data = await response.json()
+  return data.choices[0].message.content.trim()
+}
 
 export async function getAiVibeCheck() {
-  if (!process.env.GEMINI_API_KEY) {
+  if (!process.env.GROQ_API_KEY) {
     return {
-      message: 'AI requires an API key to work. Please set GEMINI_API_KEY in your environment variables.',
+      message: 'AI requires an API key to work. Please set GROQ_API_KEY in your environment variables.',
       type: 'error'
     }
   }
 
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return null
-
-  // Fetch recent transactions
-  const { data: transactions } = await supabase
-    .from('transactions')
-    .select('*')
-    .eq('user_id', user.id)
-    .order('date', { ascending: false })
-    .limit(10)
-
-  if (!transactions || transactions.length === 0) {
-    return null
-  }
-
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' })
-    
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return null
+
+    // Fetch recent transactions
+    const { data: transactions } = await supabase
+      .from('transactions')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('date', { ascending: false })
+      .limit(10)
+
+    if (!transactions || transactions.length === 0) {
+      return null
+    }
+
     // Format the transactions into a compact string to save tokens
     const txSummary = transactions.map(t => 
       `${String(t.date).split('T')[0]} | ${t.type} | ${t.category} | ${t.amount} | ${t.note || 'no note'}`
     ).join('\n')
 
-    const prompt = `
-    You are a friendly, concise, and helpful financial assistant integrated into an app called Monolog.
-    The user wants a very brief "Vibe Check" on their recent spending behavior.
-    
-    Here are their recent transactions:
-    ${txSummary}
-    
-    Instructions:
-    1. Analyze the data briefly.
-    2. Provide a 1-2 sentence supportive insight, tip, or observation.
-    3. Keep the tone light, encouraging, and non-judgmental. Do not be overly formal. 
-    4. Focus on patterns or a notable recent expense.
-    5. Be very brief (max 25 words).
-    6. Don't use markdown or bolding, just plain text.
-    `
+    const systemPrompt = `You are a friendly, concise, and helpful financial assistant integrated into an app called Monolog.
+The user wants a very brief "Vibe Check" on their recent spending behavior.
+Instructions:
+1. Analyze the data briefly.
+2. Provide a 1-2 sentence supportive insight, tip, or observation.
+3. Keep the tone light, encouraging, and non-judgmental. Do not be overly formal. 
+4. Focus on patterns or a notable recent expense.
+5. Be very brief (max 25 words).
+6. Don't use markdown or bolding, just plain text.`
 
-    const result = await model.generateContent(prompt)
-    const response = await result.response
-    const text = response.text().trim()
+    const userPrompt = `Here are my recent transactions:
+${txSummary}
+
+Give me a vibe check:`
+
+    const text = await callGroq([
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt }
+    ])
 
     return {
       message: text,
       type: 'success'
     }
   } catch (error: any) {
-    console.error('AI Error:', error)
+    console.error('AI Vibe Check Error:', error)
     return {
       message: `AI Error: ${error?.message || 'Unknown error'}`,
       type: 'error'
@@ -81,63 +106,47 @@ export async function suggestCategoryAndWallet(
   categories: MiniItem[],
   accounts: MiniItem[]
 ) {
-  if (!process.env.GEMINI_API_KEY || !description) {
+  if (!process.env.GROQ_API_KEY || !description) {
     return null
   }
 
   try {
-    const model = genAI.getGenerativeModel({
-      model: 'gemini-2.5-flash-lite',
-      generationConfig: {
-        responseMimeType: 'application/json',
-      }
-    })
+    const systemPrompt = `You are an intelligent categorization engine for the Monolog finance app.
+Your task is to analyze the user's spending description and match it to the most relevant Category ID and Account ID (Wallet). Also, extract the amount if mentioned.
 
-    const prompt = `
-    You are an intelligent categorization engine.
-    Analyze the user's spending description: "${description}"
+You must return a JSON object conforming exactly to this schema:
+{
+  "categoryId": "matched_category_id_or_null",
+  "accountId": "matched_account_id_or_null",
+  "paymentMethod": "cash" | "card" | "bank_transfer" | null,
+  "amount": matched_numeric_amount_or_null
+}`
 
-    Match it to one of these Categories:
-    ${categories.map(c => `- ID: "${c.id}" | Name: "${c.name}"`).join('\n')}
+    const userPrompt = `Description: "${description}"
 
-    Match it to one of these Accounts (Wallets):
-    ${accounts.map(a => `- ID: "${a.id}" | Name: "${a.name}"`).join('\n')}
+Categories available:
+${categories.map(c => `- ID: "${c.id}" | Name: "${c.name}"`).join('\n')}
 
-    Rules:
-    1. If the description matches a category, select the Category ID.
-    2. If the description suggests a specific wallet account name, select the Account ID.
-    3. If there is a numeric amount mentioned in the description (e.g. "150", "₱500", "Spent 200"), extract it as a number.
-    4. Determine the payment method based on terms like:
-       - "cash" -> "cash"
-       - "card", "cc", "visa", "mastercard", "credit", "debit" -> "card"
-       - "bank", "transfer", "gcash", "wire", "online" -> "bank_transfer"
-    5. Return a JSON object with exactly this schema:
-    {
-      "categoryId": "matched_category_id_or_null",
-      "accountId": "matched_account_id_or_null",
-      "paymentMethod": "cash" | "card" | "bank_transfer" | null,
-      "amount": matched_numeric_amount_or_null
-    }
-    6. Do not include markdown code block syntax, just return the raw JSON object.
-    `
+Accounts (Wallets) available:
+${accounts.map(a => `- ID: "${a.id}" | Name: "${a.name}"`).join('\n')}
 
-    const result = await model.generateContent(prompt)
-    const response = await result.response
-    const text = response.text().trim()
-    
-    console.log('AI Raw Response:', text)
+Rules:
+1. If the description matches a category, select the Category ID.
+2. If the description suggests a specific wallet account name, select the Account ID.
+3. If there is a numeric amount mentioned in the description (e.g. "150", "₱500", "Spent 200"), extract it as a number in the "amount" field.
+4. Determine the payment method based on terms like:
+   - "cash" -> "cash"
+   - "card", "cc", "visa", "mastercard", "credit", "debit" -> "card"
+   - "bank", "transfer", "gcash", "wire", "online" -> "bank_transfer"
+5. Do not write anything other than the JSON object.`
 
-    // Strip markdown code blocks if the AI ignored instructions
-    let cleanedText = text
-    if (cleanedText.startsWith('```')) {
-      cleanedText = cleanedText
-        .replace(/^```json\s*/i, '')
-        .replace(/^```\s*/, '')
-        .replace(/```\s*$/, '')
-        .trim()
-    }
+    const text = await callGroq([
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt }
+    ], true)
 
-    const parsed = JSON.parse(cleanedText)
+    console.log('Groq AI Categorization Raw:', text)
+    const parsed = JSON.parse(text)
     return {
       categoryId: parsed.categoryId || null,
       accountId: parsed.accountId || null,
@@ -149,4 +158,3 @@ export async function suggestCategoryAndWallet(
     return null
   }
 }
-
