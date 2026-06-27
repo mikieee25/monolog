@@ -64,7 +64,7 @@ export function Dashboard() {
       </div>
 
       {/* Right Column (Desktop) / Bottom Section (Mobile) */}
-      <div className="flex-1 px-5 md:px-0 flex flex-col md:bg-zinc-900/30 md:backdrop-blur-xl md:border md:border-zinc-800/60 md:rounded-3xl md:p-6 md:shadow-2xl">
+      <div className="flex-1 px-5 md:p-8 flex flex-col md:bg-zinc-900/30 md:backdrop-blur-xl md:border md:border-zinc-800/60 md:rounded-3xl md:shadow-2xl">
         <div className="flex items-center justify-between mb-4 md:mb-6">
           <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">
             Recent Transactions
