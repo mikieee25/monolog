@@ -9,9 +9,11 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { keys } from '@/lib/query-keys'
 import { getAccounts, getCategories, addTransaction, updateTransaction } from '@/app/actions'
+import { suggestCategoryAndWallet } from '@/app/actions/ai'
 import { cn } from '@/lib/utils'
 import { DynamicIcon } from './DynamicIcon'
 import { Switch } from '@/components/ui/switch'
+import { Sparkles } from 'lucide-react'
 import type { PaymentMethod, TransactionType, Transaction } from '@/lib/types'
 
 interface Props { 
@@ -68,6 +70,32 @@ export function AddTransactionModal({ open, onClose, initialData }: Props) {
       setError('')
     }
   }, [open, initialData])
+
+  const [isCategorizing, setIsCategorizing] = useState(false)
+
+  const handleDescriptionBlur = async () => {
+    if (isEdit || !desc.trim()) return
+
+    setIsCategorizing(true)
+    try {
+      const simplifiedCategories = categories.map(c => ({ id: c.id, name: c.name }))
+      const simplifiedAccounts = accounts.map(a => ({ id: a.id, name: a.name }))
+      
+      const suggestion = await suggestCategoryAndWallet(desc, simplifiedCategories, simplifiedAccounts)
+      if (suggestion) {
+        if (suggestion.categoryId) {
+          setCategoryId(suggestion.categoryId)
+        }
+        if (suggestion.accountId) {
+          setAccountId(suggestion.accountId)
+        }
+      }
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setIsCategorizing(false)
+    }
+  }
 
   const filteredCategories = categories.filter(c => c.type === type)
 
@@ -290,11 +318,19 @@ export function AddTransactionModal({ open, onClose, initialData }: Props) {
 
           {/* Description */}
           <div>
-            <Label className="text-xs text-zinc-400 mb-1 block">Description (optional)</Label>
+            <div className="flex items-center justify-between mb-1">
+              <Label className="text-xs text-zinc-400">Description (optional)</Label>
+              {isCategorizing && (
+                <span className="text-[10px] text-indigo-400 font-medium flex items-center gap-1 animate-pulse">
+                  <Sparkles className="w-3.5 h-3.5" /> Auto-categorizing...
+                </span>
+              )}
+            </div>
             <Input
               placeholder="e.g. Jollibee, Grab ride…"
               value={desc}
               onChange={e => setDesc(e.target.value)}
+              onBlur={handleDescriptionBlur}
               className="bg-zinc-800 border-zinc-700 text-zinc-50 placeholder:text-zinc-600"
             />
           </div>

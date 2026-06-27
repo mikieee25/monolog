@@ -70,3 +70,62 @@ export async function getAiVibeCheck() {
     }
   }
 }
+
+interface MiniItem {
+  id: string
+  name: string
+}
+
+export async function suggestCategoryAndWallet(
+  description: string,
+  categories: MiniItem[],
+  accounts: MiniItem[]
+) {
+  if (!process.env.GEMINI_API_KEY || !description) {
+    return null
+  }
+
+  try {
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-2.5-flash-lite',
+      generationConfig: {
+        responseMimeType: 'application/json',
+      }
+    })
+
+    const prompt = `
+    You are an intelligent categorization engine.
+    Analyze the user's spending description: "${description}"
+
+    Match it to one of these Categories:
+    ${categories.map(c => `- ID: "${c.id}" | Name: "${c.name}"`).join('\n')}
+
+    Match it to one of these Accounts (Wallets):
+    ${accounts.map(a => `- ID: "${a.id}" | Name: "${a.name}"`).join('\n')}
+
+    Rules:
+    1. If the description matches a category, select the Category ID.
+    2. If the description suggests a payment source (like "cash", "bank", "card", "gcash", etc.) that matches one of the accounts, select the Account ID.
+    3. Return a JSON object with exactly this schema:
+    {
+      "categoryId": "matched_category_id_or_null",
+      "accountId": "matched_account_id_or_null"
+    }
+    4. Do not include markdown code block syntax, just return the raw JSON object.
+    `
+
+    const result = await model.generateContent(prompt)
+    const response = await result.response
+    const text = response.text().trim()
+
+    const parsed = JSON.parse(text)
+    return {
+      categoryId: parsed.categoryId || null,
+      accountId: parsed.accountId || null
+    }
+  } catch (error) {
+    console.error('AI Categorization Error:', error)
+    return null
+  }
+}
+
