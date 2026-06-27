@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 import { processRecurringTransactions } from '@/app/actions'
 import { getAiVibeCheck } from '@/app/actions/ai'
-import { db } from '@/lib/db'
 import { BalanceSummary } from './BalanceSummary'
 import { TransactionFeed } from './TransactionFeed'
 import { QuickActionsBar } from './QuickActionsBar'
@@ -32,11 +31,8 @@ export function Dashboard() {
       
       setIsAiLoading(true)
       try {
-        const recentTx = await db.transactions.orderBy('date').reverse().limit(10).toArray()
-        if (recentTx.length > 0) {
-          const result = await getAiVibeCheck(recentTx)
-          if (result) setAiMessage(result as any)
-        }
+        const result = await getAiVibeCheck()
+        if (result) setAiMessage(result as any)
       } catch (e) {
         console.error(e)
       } finally {

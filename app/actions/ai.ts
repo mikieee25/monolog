@@ -1,17 +1,30 @@
 'use server'
 
 import { GoogleGenerativeAI } from '@google/generative-ai'
-import { Transaction } from '@/lib/db'
+import { createClient } from '@/lib/supabase/server'
+import type { Transaction } from '@/lib/types'
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '')
 
-export async function getAiVibeCheck(transactions: Transaction[]) {
+export async function getAiVibeCheck() {
   if (!process.env.GEMINI_API_KEY) {
     return {
       message: 'AI requires an API key to work. Please set GEMINI_API_KEY in your environment variables.',
       type: 'error'
     }
   }
+
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+
+  // Fetch recent transactions
+  const { data: transactions } = await supabase
+    .from('transactions')
+    .select('*')
+    .eq('user_id', user.id)
+    .order('date', { ascending: false })
+    .limit(10)
 
   if (!transactions || transactions.length === 0) {
     return null
@@ -22,7 +35,7 @@ export async function getAiVibeCheck(transactions: Transaction[]) {
     
     // Format the transactions into a compact string to save tokens
     const txSummary = transactions.map(t => 
-      `${t.date.toISOString().split('T')[0]} | ${t.type} | ${t.category} | ${t.amount} | ${t.note || 'no note'}`
+      `${String(t.date).split('T')[0]} | ${t.type} | ${t.category} | ${t.amount} | ${t.note || 'no note'}`
     ).join('\n')
 
     const prompt = `
