@@ -164,7 +164,14 @@ export function AddTransactionModal({ open, onClose }: Props) {
             <Label className="text-xs text-zinc-400 mb-1 block">Category</Label>
             <Select value={categoryId} onValueChange={v => v && setCategoryId(v)}>
               <SelectTrigger className="bg-zinc-800 border-zinc-700 text-zinc-50">
-                <SelectValue placeholder="Select category" />
+                {categoryId ? (
+                  <span className="truncate flex items-center gap-2">
+                    {filteredCategories.find(c => c.id === categoryId)?.emoji}
+                    {filteredCategories.find(c => c.id === categoryId)?.name}
+                  </span>
+                ) : (
+                  <span className="text-zinc-400">Select category</span>
+                )}
               </SelectTrigger>
               <SelectContent className="bg-zinc-800 border-zinc-700">
                 {filteredCategories.map(c => (
@@ -181,7 +188,14 @@ export function AddTransactionModal({ open, onClose }: Props) {
             <Label className="text-xs text-zinc-400 mb-1 block">Account</Label>
             <Select value={accountId} onValueChange={v => v && setAccountId(v)}>
               <SelectTrigger className="bg-zinc-800 border-zinc-700 text-zinc-50">
-                <SelectValue placeholder="Select account" />
+                {accountId ? (
+                  <span className="truncate flex items-center gap-2">
+                    {accounts.find(a => a.id === accountId)?.emoji}
+                    {accounts.find(a => a.id === accountId)?.name}
+                  </span>
+                ) : (
+                  <span className="text-zinc-400">Select account</span>
+                )}
               </SelectTrigger>
               <SelectContent className="bg-zinc-800 border-zinc-700">
                 {accounts.map(a => (
