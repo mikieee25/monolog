@@ -70,13 +70,23 @@ export function VoiceTransactionModal({ open, onClose }: Props) {
       const aiResult = await suggestCategoryAndWallet(text, simplifiedCategories, simplifiedAccounts)
       if (!aiResult) throw new Error('Could not understand transaction')
       
+      const amount = aiResult.amount
+      if (!amount) throw new Error("Couldn't detect an amount. Please specify how much.")
+      
+      const categoryId = aiResult.categoryId
+      if (!categoryId) throw new Error("Couldn't match a category. Please specify what it was for.")
+      
+      // Default to the first account if AI couldn't match a wallet
+      const accountId = aiResult.accountId || (accountsData.length > 0 ? accountsData[0].id : null)
+      if (!accountId) throw new Error("No wallet found to charge this to.")
+
       // 2. Add transaction
       await addTransaction({
         type: 'expense',
-        amount: aiResult.amount || 0,
+        amount: amount,
         description: text,
-        category_id: aiResult.categoryId || '',
-        account_id: aiResult.accountId || '',
+        category_id: categoryId,
+        account_id: accountId,
         date: new Date().toISOString(),
         payment_method: aiResult.paymentMethod || 'cash' // Default
       })
