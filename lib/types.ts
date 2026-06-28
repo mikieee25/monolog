@@ -55,3 +55,13 @@ export interface RecurringTransaction {
   last_processed: string | null
   created_at: string
 }
+
+export interface Budget {
+  id: string
+  user_id: string
+  category_id: string
+  amount: number
+  created_at: string
+  // joined relations
+  category?: Pick<Category, 'name' | 'emoji'> | null
+}

@@ -497,3 +497,62 @@ export async function getProjectedEndOfMonthBalance() {
 
   return currentBalance
 }
+
+// ─── Budgets ───────────────────────────────────────────────────────────────
+
+export async function getBudgets() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return []
+
+  const { data, error } = await supabase
+    .from('budgets')
+    .select('*, category:categories(name, emoji)')
+    .eq('user_id', user.id)
+
+  if (error) throw error
+  return data
+}
+
+export async function setBudget(input: { category_id: string, amount: number }) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  // upsert on user_id and category_id
+  const { error } = await supabase
+    .from('budgets')
+    .upsert({
+      user_id: user.id,
+      category_id: input.category_id,
+      amount: input.amount
+    }, { onConflict: 'user_id, category_id' })
+
+  if (error) throw error
+  revalidatePath('/')
+}
+
+export async function addRecurringTransactionsBatch(transactions: any[]) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const toInsert = transactions.map(t => ({
+    user_id: user.id,
+    amount: t.amount,
+    type: t.type,
+    description: t.description,
+    category_id: t.category_id,
+    account_id: t.account_id,
+    payment_method: t.payment_method,
+    recurrence_day: t.recurrence_day,
+    last_processed: null
+  }))
+
+  const { error } = await supabase
+    .from('recurring_transactions')
+    .insert(toInsert)
+
+  if (error) throw error
+  revalidatePath('/')
+}

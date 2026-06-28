@@ -8,9 +8,10 @@ interface AiNudgeProps {
   message: string | null
   type?: 'success' | 'error' | 'loading'
   onDismiss?: () => void
+  onClick?: () => void
 }
 
-export function AiNudge({ message, type = 'success', onDismiss }: AiNudgeProps) {
+export function AiNudge({ message, type = 'success', onDismiss, onClick }: AiNudgeProps) {
   const [isVisible, setIsVisible] = useState(false)
 
   useEffect(() => {
@@ -27,8 +28,10 @@ export function AiNudge({ message, type = 'success', onDismiss }: AiNudgeProps) 
 
   return (
     <div
+      onClick={onClick}
       className={cn(
         'relative overflow-hidden rounded-2xl p-[1px] transition-all duration-500 ease-out',
+        onClick && 'cursor-pointer hover:scale-[1.02] active:scale-[0.98]',
         isVisible ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-4 scale-95'
       )}
     >

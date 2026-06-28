@@ -14,14 +14,19 @@ import { CalendarView } from './CalendarView'
 import { AiNudge } from './AiNudge'
 import { SubscriptionRadar } from './SubscriptionRadar'
 import { VoiceTransactionModal } from './VoiceTransactionModal'
+import { ReceiptScannerModal } from './ReceiptScannerModal'
+import { BudgetsModal } from './BudgetsModal'
+import { SmartSearch } from './SmartSearch'
+import { ChatModal } from './ChatModal'
 
-type Modal = 'transaction' | 'wallets' | 'categories' | null
+type Modal = 'transaction' | 'wallets' | 'categories' | 'receipt' | 'budgets' | 'chat' | null
 
 export function Dashboard() {
   const [activeModal, setActiveModal] = useState<Modal | 'voice'>(null)
   const [view, setView] = useState<'feed' | 'calendar'>('feed')
   const [aiMessage, setAiMessage] = useState<{message: string, type: 'success' | 'error' | 'loading'} | null>(null)
   const [isAiLoading, setIsAiLoading] = useState(false)
+  const [searchFilter, setSearchFilter] = useState<any | null>(null)
   const close = () => setActiveModal(null)
 
   useEffect(() => {
@@ -70,9 +75,9 @@ export function Dashboard() {
 
         <div className="px-5 md:px-0 mt-4 md:mt-6">
           {isAiLoading ? (
-            <AiNudge message={null} type="loading" />
+            <AiNudge message={null} type="loading" onClick={() => setActiveModal('chat')} />
           ) : aiMessage ? (
-            <AiNudge message={aiMessage.message} type={aiMessage.type} onDismiss={handleDismissNudge} />
+            <AiNudge message={aiMessage.message} type={aiMessage.type} onDismiss={handleDismissNudge} onClick={() => setActiveModal('chat')} />
           ) : null}
         </div>
 
@@ -110,6 +115,24 @@ export function Dashboard() {
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg>
             Manage Categories
           </button>
+
+          <div className="h-px bg-zinc-800/50 my-2" />
+
+          <button 
+            onClick={() => setActiveModal('receipt')}
+            className="flex items-center gap-3 px-4 py-3 bg-zinc-900/50 hover:bg-zinc-800/80 border border-zinc-800/50 text-zinc-300 rounded-xl font-medium transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+            Scan Receipt
+          </button>
+
+          <button 
+            onClick={() => setActiveModal('budgets')}
+            className="flex items-center gap-3 px-4 py-3 bg-zinc-900/50 hover:bg-zinc-800/80 border border-zinc-800/50 text-zinc-300 rounded-xl font-medium transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+            Set Budgets
+          </button>
         </div>
       </div>
 
@@ -131,8 +154,11 @@ export function Dashboard() {
             </button>
           </div>
         </div>
+        <div className="mb-4">
+          <SmartSearch onFilter={setSearchFilter} />
+        </div>
         
-        {view === 'feed' ? <TransactionFeed /> : <CalendarView />}
+        {view === 'feed' ? <TransactionFeed filter={searchFilter} /> : <CalendarView />}
       </div>
 
       {/* Fixed bottom action bar (Mobile Only) */}
@@ -149,6 +175,9 @@ export function Dashboard() {
       <VoiceTransactionModal   open={activeModal === 'voice'}       onClose={close} />
       <ManageWalletsModal      open={activeModal === 'wallets'}     onClose={close} />
       <ManageCategoriesModal   open={activeModal === 'categories'}  onClose={close} />
+      <ReceiptScannerModal     open={activeModal === 'receipt'}     onClose={close} />
+      <BudgetsModal            open={activeModal === 'budgets'}     onClose={close} />
+      <ChatModal               open={activeModal === 'chat'}        onClose={close} />
     </div>
   )
 }

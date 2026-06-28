@@ -29,7 +29,7 @@ function groupByDate(txs: Transaction[]): Map<string, Transaction[]> {
   return map
 }
 
-export function TransactionFeed() {
+export function TransactionFeed({ filter }: { filter?: any | null }) {
   const [editingTx, setEditingTx] = useState<Transaction | null>(null)
 
   const { data: transactions } = useSuspenseQuery({
@@ -37,7 +37,25 @@ export function TransactionFeed() {
     queryFn: () => getRecentTransactions(30),
   })
 
-  if (!transactions || transactions.length === 0) {
+  let filteredTransactions = transactions || []
+
+  if (filter && filteredTransactions.length > 0) {
+    filteredTransactions = filteredTransactions.filter(tx => {
+      if (filter.type && tx.type !== filter.type) return false
+      if (filter.categoryId && tx.category_id !== filter.categoryId) return false
+      if (filter.startDate && tx.date < filter.startDate) return false
+      if (filter.endDate && tx.date > filter.endDate) return false
+      if (filter.keyword) {
+        const kw = filter.keyword.toLowerCase()
+        if (!tx.description?.toLowerCase().includes(kw) && !tx.category?.name.toLowerCase().includes(kw)) {
+          return false
+        }
+      }
+      return true
+    })
+  }
+
+  if (!filteredTransactions || filteredTransactions.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <DynamicIcon name="Coins" className="w-10 h-10 mb-3 text-zinc-500" />
@@ -47,7 +65,7 @@ export function TransactionFeed() {
     )
   }
 
-  const grouped = groupByDate(transactions)
+  const grouped = groupByDate(filteredTransactions)
 
   return (
     <div className="space-y-5 pb-4">
