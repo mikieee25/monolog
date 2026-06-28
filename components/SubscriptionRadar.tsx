@@ -6,8 +6,8 @@ import { keys } from '@/lib/query-keys'
 import { getUpcomingRecurringTransactions } from '@/app/actions'
 import { detectSubscriptions } from '@/app/actions/ai'
 import { formatCurrency } from '@/lib/utils'
-import { Clock, CheckCircle2, Sparkles, Loader2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Clock } from 'lucide-react'
+import { DynamicIcon } from './DynamicIcon'
 
 export function SubscriptionRadar() {
   const qc = useQueryClient()
@@ -34,7 +34,7 @@ export function SubscriptionRadar() {
             <div key={rt.id} className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-zinc-700/50 flex items-center justify-center text-lg">
-                  {rt.category?.emoji || '📅'}
+                  <DynamicIcon name={rt.category?.emoji || 'CalendarClock'} className="w-5 h-5 text-zinc-100" />
                 </div>
                 <div className="flex flex-col">
                   <span className="text-sm font-medium text-zinc-200">
