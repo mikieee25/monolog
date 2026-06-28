@@ -352,18 +352,19 @@ export async function chatWithMonolog(messages: {role: string, content: string}[
     const budgetContext = budgets.map(b => {
       const catName = b.category?.name || 'Unknown'
       const spent = categoryTotals[catName] || 0
-      return `${catName}: Spent $${spent} / Budget $${b.amount}`
+      return `${catName}: Spent ₱${spent} / Budget ₱${b.amount}`
     }).join('\n')
 
-    const txContext = txs.map(t => `${t.date}: ${t.type} $${t.amount} for ${t.description || t.category?.name}`).join('\n')
+    const txContext = txs.map(t => `${t.date}: ${t.type} ₱${t.amount} for ${t.description || t.category?.name}`).join('\n')
 
-    const systemPrompt = `You are Monolog, a concise, helpful, and slightly witty AI financial advisor.
+    const systemPrompt = `You are MonAI, a concise, helpful, and slightly witty AI financial advisor for an app called Monolog.
 Your goal is to answer the user's questions about their finances based on the provided context.
 Keep your answers brief, readable, and formatting-rich (use markdown, lists, and emojis when appropriate).
+Always format currency values in Philippine Peso (₱).
 Avoid long robotic disclaimers. Speak like a smart friend.
 
 --- CURRENT CONTEXT ---
-Current Balance: $${currentBalance}
+Current Balance: ₱${currentBalance}
 Current Month Budgets & Pacing:
 ${budgetContext || 'No budgets set.'}
 

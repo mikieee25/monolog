@@ -22,7 +22,7 @@ type Message = {
 
 export function ChatModal({ open, onClose }: Props) {
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'assistant', content: 'Hi! I am Monolog, your personal AI financial advisor. How can I help you today?' }
+    { role: 'assistant', content: 'Hi! I am MonAI, your personal AI financial advisor. How can I help you today?' }
   ])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -37,7 +37,7 @@ export function ChatModal({ open, onClose }: Props) {
   // Reset chat when opened
   useEffect(() => {
     if (open && messages.length === 0) {
-      setMessages([{ role: 'assistant', content: 'Hi! I am Monolog, your personal AI financial advisor. How can I help you today?' }])
+      setMessages([{ role: 'assistant', content: 'Hi! I am MonAI, your personal AI financial advisor. How can I help you today?' }])
     }
   }, [open])
 
@@ -90,7 +90,7 @@ export function ChatModal({ open, onClose }: Props) {
                 <div className="p-1.5 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 text-white shadow-lg shadow-indigo-500/20">
                   <Sparkles className="w-4 h-4" />
                 </div>
-                <DialogTitle className="text-base font-bold text-stone-100">Monolog AI</DialogTitle>
+                <DialogTitle className="text-base font-bold text-stone-100">MonAI</DialogTitle>
               </div>
               <button onClick={onClose} className="p-1 rounded-full text-stone-500 hover:text-stone-300 hover:bg-stone-800 transition-colors">
                 <X className="w-5 h-5" />
@@ -112,7 +112,7 @@ export function ChatModal({ open, onClose }: Props) {
                   {msg.role === 'assistant' && i > 0 && (
                      <div className="flex items-center gap-2 mb-1 opacity-50">
                        <Sparkles className="w-3 h-3" />
-                       <span className="text-xs font-medium uppercase tracking-wider">Monolog</span>
+                       <span className="text-xs font-medium uppercase tracking-wider">MonAI</span>
                      </div>
                   )}
                   <div className="markdown-prose space-y-2 [&>p]:leading-relaxed [&>pre]:bg-black/20 [&>pre]:p-3 [&>pre]:rounded-lg [&>pre]:overflow-x-auto [&_code]:font-mono [&_code]:text-sm [&_code]:bg-black/10 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded-md [&_strong]:font-bold [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5">
