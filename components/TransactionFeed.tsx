@@ -138,11 +138,26 @@ function TransactionRow({
   const handleDeleteIntent = () => {
     // Optimistic hide
     onHide()
+    
+    const prevBalance = qc.getQueryData<number>(keys.balance)
+    const prevMonthly = qc.getQueryData<number>(keys.monthlySpending)
+
+    if (prevBalance !== undefined) {
+      qc.setQueryData(keys.balance, prevBalance + (isIncome ? -tx.amount : tx.amount))
+    }
+
+    const isCurrentMonth = tx.date.startsWith(new Date().toISOString().slice(0, 7))
+    if (!isIncome && isCurrentMonth && prevMonthly !== undefined) {
+      qc.setQueryData(keys.monthlySpending, prevMonthly - tx.amount)
+    }
+
     toast('Transaction deleted', {
       action: {
         label: 'Undo',
         onClick: () => {
           onRestore()
+          if (prevBalance !== undefined) qc.setQueryData(keys.balance, prevBalance)
+          if (prevMonthly !== undefined) qc.setQueryData(keys.monthlySpending, prevMonthly)
           toast.dismiss()
         }
       },

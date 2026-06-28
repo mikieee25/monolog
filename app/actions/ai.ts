@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import type { Transaction } from '@/lib/types'
+import { getBalance } from '@/app/actions'
 
 async function callGroq(messages: { role: string; content: string }[], jsonMode = false) {
   const apiKey = process.env.GROQ_API_KEY
@@ -325,17 +326,16 @@ export async function chatWithMonolog(messages: {role: string, content: string}[
     const thirtyDaysAgo = new Date()
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
     
-    const [txResult, balanceResult, budgetsResult] = await Promise.all([
+    const [txResult, budgetsResult, currentBalance] = await Promise.all([
       supabase.from('transactions').select(`
         amount, type, description, date,
         category:categories(name, type)
       `).eq('user_id', user.id).gte('date', thirtyDaysAgo.toISOString().split('T')[0]).order('date', { ascending: false }),
-      supabase.rpc('get_current_balance', { user_id_param: user.id }),
-      supabase.from('budgets').select(`amount, category:categories(name)`).eq('user_id', user.id)
+      supabase.from('budgets').select(`amount, category:categories(name)`).eq('user_id', user.id),
+      getBalance()
     ])
 
     const txs: any[] = txResult.data || []
-    const currentBalance = balanceResult.data || 0
     const budgets: any[] = budgetsResult.data || []
 
     // Group spending for context

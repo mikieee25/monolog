@@ -82,7 +82,7 @@ export function ChatModal({ open, onClose }: Props) {
           <div className="absolute inset-[-100%] animate-[spin_8s_linear_infinite] bg-[conic-gradient(from_0deg,transparent_0_340deg,#10b981_360deg)] opacity-30 mix-blend-screen" />
 
           {/* Actual Modal Content Container */}
-          <div className="relative flex flex-col h-[65vh] bg-stone-950/95 backdrop-blur-3xl rounded-[22px] overflow-hidden">
+          <div className="relative flex flex-col h-[65vh] bg-stone-950/40 backdrop-blur-3xl rounded-[22px] overflow-hidden">
             
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-stone-800/50 bg-stone-950/50 backdrop-blur-xl z-10">
