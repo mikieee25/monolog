@@ -18,6 +18,7 @@ import { ReceiptScannerModal } from './ReceiptScannerModal'
 import { BudgetsModal } from './BudgetsModal'
 import { SmartSearch } from './SmartSearch'
 import { ChatModal } from './ChatModal'
+import { ScanSubscriptionsButton } from './ScanSubscriptionsButton'
 
 type Modal = 'transaction' | 'wallets' | 'categories' | 'receipt' | 'budgets' | 'chat' | null
 
@@ -88,6 +89,25 @@ export function Dashboard() {
         {/* Divider (Mobile Only) */}
         <div className="h-px bg-zinc-800 mx-5 my-4 md:hidden" />
 
+        {/* Mobile Secondary Actions */}
+        <div className="md:hidden flex gap-2 overflow-x-auto px-5 pb-2 scrollbar-none">
+          <button 
+            onClick={() => setActiveModal('receipt')}
+            className="flex items-center gap-2 whitespace-nowrap px-3 py-2 bg-zinc-900/80 border border-zinc-800 text-zinc-300 rounded-xl text-xs font-medium"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+            Scan Receipt
+          </button>
+          <button 
+            onClick={() => setActiveModal('budgets')}
+            className="flex items-center gap-2 whitespace-nowrap px-3 py-2 bg-zinc-900/80 border border-zinc-800 text-zinc-300 rounded-xl text-xs font-medium"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+            Set Budgets
+          </button>
+          <ScanSubscriptionsButton className="whitespace-nowrap px-3 py-2 text-xs rounded-xl bg-zinc-900/80 border-zinc-800 text-zinc-300 hover:bg-zinc-800/80" />
+        </div>
+
         {/* Desktop Quick Actions (Hidden on Mobile) */}
         <div className="hidden md:flex flex-col gap-2 mt-8">
           <button 
@@ -133,6 +153,8 @@ export function Dashboard() {
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
             Set Budgets
           </button>
+
+          <ScanSubscriptionsButton />
         </div>
       </div>
 
