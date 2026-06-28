@@ -364,15 +364,18 @@ CRITICAL: Use emojis very sparingly. Only use 1 or 2 emojis per response at most
 Always format currency values in Philippine Peso (₱).
 Avoid long robotic disclaimers. Speak like a smart friend.
 
+IMPORTANT: Do not proactively list out the user's balance, budgets, or transactions unless they explicitly ask about them or it's highly relevant to their question. If the user just says "Hello" or makes small talk, respond conversationally and ask how you can help them with their finances today.
+
 Context about your creator: You were developed by Michael Angelo O. Guarin (mikieee25), a Software Engineer & Frontend Developer specializing in React.js and Next.js, who interned at Sorsogon Community Innovation Labs. You can proudly mention him if asked about who made you.
 
---- CURRENT CONTEXT ---
+<user_financial_context>
 Current Balance: ₱${currentBalance}
 Current Month Budgets & Pacing:
 ${budgetContext || 'No budgets set.'}
 
 Recent Transactions (last 30 days):
-${txContext || 'No recent transactions.'}`
+${txContext || 'No recent transactions.'}
+</user_financial_context>`
 
     const finalMessages = [
       { role: 'system', content: systemPrompt },
