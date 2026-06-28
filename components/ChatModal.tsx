@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input'
 import { Loader2, Sparkles, Send, X } from 'lucide-react'
 import { chatWithMonolog } from '@/app/actions/ai'
 import { cn } from '@/lib/utils'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 interface Props {
   open: boolean
@@ -113,7 +115,11 @@ export function ChatModal({ open, onClose }: Props) {
                        <span className="text-xs font-medium uppercase tracking-wider">Monolog</span>
                      </div>
                   )}
-                  {msg.content}
+                  <div className="markdown-prose space-y-2 [&>p]:leading-relaxed [&>pre]:bg-black/20 [&>pre]:p-3 [&>pre]:rounded-lg [&>pre]:overflow-x-auto [&_code]:font-mono [&_code]:text-sm [&_code]:bg-black/10 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded-md [&_strong]:font-bold [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {msg.content}
+                    </ReactMarkdown>
+                  </div>
                 </div>
               ))}
               
