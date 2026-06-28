@@ -3,6 +3,8 @@ import { Inter, Geist } from 'next/font/google'
 import './globals.css'
 import { QueryProvider } from '@/providers/query-provider'
 import { cn } from "@/lib/utils";
+import { ThemeProvider } from '@/providers/theme-provider'
+import { Toaster } from '@/components/ui/sonner'
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
@@ -43,21 +45,27 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={cn("dark", "font-sans", geist.variable)}>
-
+    <html lang="en" suppressHydrationWarning className={cn("dark", "font-sans", geist.variable)}>
       <body className={`${inter.variable} font-sans antialiased bg-[#05050A] text-zinc-50`}>
-        {/* Ambient Blurred Background Elements */}
-        <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
-          <div className="absolute top-[-10%] left-[-20%] md:left-[-10%] w-[80%] md:w-[60%] aspect-square rounded-full bg-blue-900/20 blur-[70px] md:blur-[120px] transform-gpu" />
-          <div className="absolute bottom-[-10%] right-[-20%] md:right-[-10%] w-[80%] md:w-[60%] aspect-square rounded-full bg-purple-900/20 blur-[70px] md:blur-[120px] transform-gpu" />
-        </div>
-
-        <QueryProvider>
-          {/* Responsive shell */}
-          <div className="mx-auto w-full max-w-sm md:max-w-4xl lg:max-w-5xl min-h-dvh relative">
-            {children}
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {/* Ambient Blurred Background Elements */}
+          <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+            <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-500/10 rounded-full blur-[120px] mix-blend-screen" />
+            <div className="absolute bottom-[-10%] right-[-5%] w-[35%] h-[35%] bg-purple-500/10 rounded-full blur-[100px] mix-blend-screen" />
           </div>
-        </QueryProvider>
+
+          <QueryProvider>
+            <div className="mx-auto w-full max-w-sm md:max-w-4xl lg:max-w-5xl min-h-dvh relative">
+              {children}
+            </div>
+          </QueryProvider>
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   )

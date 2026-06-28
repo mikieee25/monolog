@@ -19,6 +19,7 @@ import { BudgetsModal } from './BudgetsModal'
 import { SmartSearch } from './SmartSearch'
 import { ChatModal } from './ChatModal'
 import { ScanSubscriptionsButton } from './ScanSubscriptionsButton'
+import { ThemeToggle } from './ThemeToggle'
 
 type Modal = 'transaction' | 'wallets' | 'categories' | 'receipt' | 'budgets' | 'chat' | null
 
@@ -62,7 +63,10 @@ export function Dashboard() {
       <div className="flex flex-col w-full md:w-[320px] lg:w-[380px] shrink-0">
         {/* Header */}
         <header className="flex items-center justify-between px-5 md:px-0 pt-14 md:pt-0 pb-2 md:pb-6">
-          <h1 className="text-lg md:text-xl font-semibold tracking-tight text-zinc-100">Monolog</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-lg md:text-xl font-semibold tracking-tight text-zinc-100 dark:text-zinc-100 text-zinc-900">Monolog</h1>
+            <ThemeToggle />
+          </div>
           <span className="text-xs text-zinc-500 font-mono">
             {new Date().toLocaleDateString('en-PH', { month: 'long', year: 'numeric' })}
           </span>
