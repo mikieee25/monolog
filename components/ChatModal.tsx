@@ -82,17 +82,17 @@ export function ChatModal({ open, onClose }: Props) {
           <div className="absolute inset-[-100%] animate-[spin_8s_linear_infinite] bg-[conic-gradient(from_0deg,transparent_0_340deg,#10b981_360deg)] opacity-30 mix-blend-screen" />
 
           {/* Actual Modal Content Container */}
-          <div className="relative flex flex-col h-[65vh] bg-stone-950/40 backdrop-blur-3xl rounded-[22px] overflow-hidden">
+          <div className="relative flex flex-col h-[65vh] bg-white dark:bg-stone-950 rounded-[22px] overflow-hidden">
             
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-stone-800/50 bg-stone-950/50 backdrop-blur-xl z-10">
+            <div className="flex items-center justify-between p-4 border-b border-stone-200/50 dark:border-stone-800/50 bg-white/50 dark:bg-stone-950/50 backdrop-blur-xl z-10">
               <div className="flex items-center gap-2">
                 <div className="p-1.5 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 text-white shadow-lg shadow-indigo-500/20">
                   <Sparkles className="w-4 h-4" />
                 </div>
-                <DialogTitle className="text-base font-bold text-stone-100">MonAI</DialogTitle>
+                <DialogTitle className="text-base font-bold text-stone-900 dark:text-stone-100">MonAI</DialogTitle>
               </div>
-              <button onClick={onClose} className="p-1 rounded-full text-stone-500 hover:text-stone-300 hover:bg-stone-800 transition-colors">
+              <button onClick={onClose} className="p-1 rounded-full text-stone-500 hover:text-stone-700 dark:hover:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -105,8 +105,8 @@ export function ChatModal({ open, onClose }: Props) {
                   className={cn(
                     "max-w-[85%] rounded-2xl px-4 py-2.5 text-[15px] leading-relaxed animate-in fade-in slide-in-from-bottom-2",
                     msg.role === 'user' 
-                      ? "bg-zinc-800 text-zinc-100 ml-auto rounded-br-sm" 
-                      : "bg-transparent text-zinc-300 mr-auto rounded-bl-sm"
+                      ? "bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100 ml-auto rounded-br-sm" 
+                      : "bg-transparent text-zinc-800 dark:text-zinc-300 mr-auto rounded-bl-sm"
                   )}
                 >
                   {msg.role === 'assistant' && i > 0 && (
@@ -115,7 +115,7 @@ export function ChatModal({ open, onClose }: Props) {
                        <span className="text-xs font-medium uppercase tracking-wider">MonAI</span>
                      </div>
                   )}
-                  <div className="markdown-prose space-y-2 [&>p]:leading-relaxed [&>pre]:bg-black/20 [&>pre]:p-3 [&>pre]:rounded-lg [&>pre]:overflow-x-auto [&_code]:font-mono [&_code]:text-sm [&_code]:bg-black/10 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded-md [&_strong]:font-bold [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5">
+                  <div className="markdown-prose space-y-2 [&>p]:leading-relaxed [&>pre]:bg-black/5 dark:[&>pre]:bg-black/20 [&>pre]:p-3 [&>pre]:rounded-lg [&>pre]:overflow-x-auto [&_code]:font-mono [&_code]:text-sm [&_code]:bg-black/5 dark:[&_code]:bg-black/10 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded-md [&_strong]:font-bold [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5">
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>
                       {msg.content}
                     </ReactMarkdown>
@@ -124,7 +124,7 @@ export function ChatModal({ open, onClose }: Props) {
               ))}
               
               {isLoading && (
-                <div className="max-w-[85%] mr-auto text-zinc-400 bg-transparent px-4 py-2 flex items-center gap-2">
+                <div className="max-w-[85%] mr-auto text-zinc-500 dark:text-zinc-400 bg-transparent px-4 py-2 flex items-center gap-2">
                   <Loader2 className="w-4 h-4 animate-spin" />
                   <span className="text-sm">Thinking...</span>
                 </div>
@@ -132,13 +132,13 @@ export function ChatModal({ open, onClose }: Props) {
             </div>
 
             {/* Input Area */}
-            <div className="p-4 border-t border-stone-800/50 bg-stone-950/80 backdrop-blur-xl">
+            <div className="p-4 border-t border-stone-200/50 dark:border-stone-800/50 bg-white/80 dark:bg-stone-950/80 backdrop-blur-xl">
               <form onSubmit={handleSubmit} className="relative flex items-center">
                 <Input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Ask about your finances..."
-                  className="w-full pr-12 bg-stone-900 border-stone-800 text-stone-100 rounded-full h-12 focus-visible:ring-indigo-500/50"
+                  className="w-full pr-12 bg-stone-100 dark:bg-stone-900 border-stone-200 dark:border-stone-800 text-stone-900 dark:text-stone-100 rounded-full h-12 focus-visible:ring-indigo-500/50"
                 />
                 <Button 
                   type="submit" 
