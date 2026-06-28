@@ -116,15 +116,6 @@ export function Dashboard() {
 
         {/* Desktop Quick Actions (Hidden on Mobile) */}
         <div className="hidden md:flex flex-col gap-2 mt-4">
-          <button 
-            onClick={() => setActiveModal('transaction')}
-            className="flex items-center gap-3 px-4 py-3 bg-zinc-900 dark:bg-zinc-100 hover:bg-zinc-800 dark:hover:bg-white text-white dark:text-zinc-900 rounded-xl font-medium transition-colors"
-          >
-            <div className="bg-zinc-100 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-50 rounded-full p-1">
-               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
-            </div>
-            Add Transaction
-          </button>
           
           <button 
             onClick={() => setActiveModal('wallets')}
