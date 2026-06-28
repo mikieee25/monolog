@@ -21,11 +21,11 @@ export function SubscriptionRadar() {
   if (!hasUpcoming) return null
 
   return (
-    <div className="mx-5 mb-6 bg-zinc-800/50 border border-zinc-700/50 rounded-2xl p-4">
+    <div className="mx-5 md:mx-0 mt-4 bg-zinc-200/50 dark:bg-zinc-800/50 border border-zinc-300/50 dark:border-zinc-700/50 rounded-2xl p-4">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <Clock className="w-4 h-4 text-amber-400" />
-          <h3 className="text-sm font-semibold text-zinc-100">Upcoming Bills</h3>
+          <Clock className="w-4 h-4 text-amber-500 dark:text-amber-400" />
+          <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Upcoming Bills</h3>
         </div>
       </div>
 
@@ -33,11 +33,11 @@ export function SubscriptionRadar() {
         {upcoming.map((rt: any) => (
             <div key={rt.id} className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-zinc-700/50 flex items-center justify-center text-lg">
-                  <DynamicIcon name={rt.category?.emoji || 'CalendarClock'} className="w-5 h-5 text-zinc-100" />
+                <div className="w-10 h-10 rounded-full bg-zinc-300/50 dark:bg-zinc-700/50 flex items-center justify-center text-lg">
+                  <DynamicIcon name={rt.category?.emoji || 'CalendarClock'} className="w-5 h-5 text-zinc-900 dark:text-zinc-100" />
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-sm font-medium text-zinc-200">
+                  <span className="text-sm font-medium text-zinc-900 dark:text-zinc-200">
                     {rt.description || rt.category?.name || 'Recurring'}
                   </span>
                   <span className="text-xs text-zinc-500">
@@ -49,7 +49,7 @@ export function SubscriptionRadar() {
                   </span>
                 </div>
               </div>
-              <span className="text-sm font-semibold text-zinc-100 tabular-nums">
+              <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 tabular-nums">
                 {formatCurrency(rt.amount)}
               </span>
             </div>

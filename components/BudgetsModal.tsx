@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { getCategories, getBudgets, setBudget } from '@/app/actions'
 import { keys } from '@/lib/query-keys'
 import { Loader2, Target, CheckCircle2 } from 'lucide-react'
+import { DynamicIcon } from '@/components/DynamicIcon'
 
 interface Props {
   open: boolean
@@ -76,8 +77,8 @@ export function BudgetsModal({ open, onClose }: Props) {
               return (
                 <div key={c.id} className="flex items-center justify-between p-3 rounded-xl bg-stone-900/50 border border-stone-800/50">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-stone-800 flex items-center justify-center text-lg">
-                      {c.emoji}
+                    <div className="w-10 h-10 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-lg">
+                      <DynamicIcon name={c.emoji || 'CircleDollarSign'} className="w-5 h-5 text-zinc-900 dark:text-zinc-100" />
                     </div>
                     <span className="font-medium text-stone-200">{c.name}</span>
                   </div>

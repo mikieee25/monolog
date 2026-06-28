@@ -78,15 +78,17 @@ export function Dashboard() {
           onAddWithVoice={() => setActiveModal('voice')}
         />
 
-        <div className="px-5 md:px-0 mt-4 md:mt-6">
-          {isAiLoading ? (
-            <AiNudge message={null} type="loading" onClick={() => setActiveModal('chat')} />
-          ) : aiMessage ? (
-            <AiNudge message={aiMessage.message} type={aiMessage.type} onDismiss={handleDismissNudge} onClick={() => setActiveModal('chat')} />
-          ) : null}
-        </div>
+        {(isAiLoading || aiMessage) && (
+          <div className="px-5 md:px-0 mt-4">
+            {isAiLoading ? (
+              <AiNudge message={null} type="loading" onClick={() => setActiveModal('chat')} />
+            ) : aiMessage ? (
+              <AiNudge message={aiMessage.message} type={aiMessage.type} onDismiss={handleDismissNudge} onClick={() => setActiveModal('chat')} />
+            ) : null}
+          </div>
+        )}
 
-        <div className="mt-4 md:mt-6 md:px-0">
+        <div className="md:px-0">
           <SubscriptionRadar />
         </div>
 

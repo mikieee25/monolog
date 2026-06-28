@@ -24,11 +24,11 @@ export function ChatModal({ open, onClose }: Props) {
   ])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const bottomRef = useRef<HTMLDivElement>(null)
+  const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (bottomRef.current) {
-      bottomRef.current.scrollIntoView({ behavior: 'smooth' })
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
     }
   }, [messages])
 
@@ -96,15 +96,15 @@ export function ChatModal({ open, onClose }: Props) {
             </div>
 
             {/* Chat History */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div className="flex-1 overflow-y-auto p-4 space-y-4" ref={scrollRef}>
               {messages.map((msg, i) => (
                 <div 
                   key={i} 
                   className={cn(
                     "max-w-[85%] rounded-2xl px-4 py-2.5 text-[15px] leading-relaxed animate-in fade-in slide-in-from-bottom-2",
                     msg.role === 'user' 
-                      ? "bg-stone-800 text-stone-100 ml-auto rounded-br-sm" 
-                      : "bg-transparent text-stone-300 mr-auto rounded-bl-sm"
+                      ? "bg-zinc-800 text-zinc-100 ml-auto rounded-br-sm" 
+                      : "bg-transparent text-zinc-300 mr-auto rounded-bl-sm"
                   )}
                 >
                   {msg.role === 'assistant' && i > 0 && (
@@ -118,12 +118,11 @@ export function ChatModal({ open, onClose }: Props) {
               ))}
               
               {isLoading && (
-                <div className="max-w-[85%] mr-auto text-stone-400 bg-transparent px-4 py-2 flex items-center gap-2">
+                <div className="max-w-[85%] mr-auto text-zinc-400 bg-transparent px-4 py-2 flex items-center gap-2">
                   <Loader2 className="w-4 h-4 animate-spin" />
                   <span className="text-sm">Thinking...</span>
                 </div>
               )}
-              <div ref={bottomRef} />
             </div>
 
             {/* Input Area */}
