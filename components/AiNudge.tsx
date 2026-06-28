@@ -70,17 +70,7 @@ export function AiNudge({ message, type = 'success', onDismiss, onClick }: AiNud
           </p>
         </div>
 
-        {onDismiss && type !== 'loading' && (
-          <button 
-            onClick={() => {
-              setIsVisible(false)
-              setTimeout(onDismiss, 300)
-            }}
-            className="p-1 -mr-1 -mt-1 text-zinc-500 hover:text-zinc-300 transition-colors"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        )}
+
       </div>
     </div>
   )

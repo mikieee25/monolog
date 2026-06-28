@@ -70,7 +70,7 @@ export function ChatModal({ open, onClose }: Props) {
         and an inner wrapper that holds the actual content with a solid dark background.
         The padding of the outer wrapper creates the "border".
       */}
-      <DialogContent className="max-w-md p-0 border-0 bg-transparent shadow-2xl overflow-hidden rounded-[24px]">
+      <DialogContent showCloseButton={false} className="max-w-md p-0 border-0 bg-transparent shadow-2xl overflow-hidden rounded-[24px]">
         
         {/* Apple Intelligence Glowing Border Effect */}
         <div className="relative p-[2px] rounded-[24px] overflow-hidden group">

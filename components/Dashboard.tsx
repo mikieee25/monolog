@@ -115,7 +115,7 @@ export function Dashboard() {
         </div>
 
         {/* Desktop Quick Actions (Hidden on Mobile) */}
-        <div className="hidden md:flex flex-col gap-2 mt-8">
+        <div className="hidden md:flex flex-col gap-2 mt-4">
           <button 
             onClick={() => setActiveModal('transaction')}
             className="flex items-center gap-3 px-4 py-3 bg-zinc-900 dark:bg-zinc-100 hover:bg-zinc-800 dark:hover:bg-white text-white dark:text-zinc-900 rounded-xl font-medium transition-colors"
