@@ -221,11 +221,25 @@ Return a JSON object: { "amount": number, "description": "string", "suggestedCat
   }
 }
 
-export async function detectSubscriptions(transactions: any[]) {
-  if (transactions.length === 0) return []
-  
+export async function detectSubscriptions() {
   try {
-    const txSummary = transactions.map(t => 
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return []
+
+    // Fetch last 90 days of transactions
+    const ninetyDaysAgo = new Date()
+    ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90)
+    const { data: transactions } = await supabase
+      .from('transactions')
+      .select('*')
+      .eq('user_id', user.id)
+      .gte('date', ninetyDaysAgo.toISOString().split('T')[0])
+      .order('date', { ascending: false })
+
+    if (!transactions || transactions.length === 0) return []
+
+    const txSummary = transactions.map((t: any) => 
       `${t.date} | ${t.description || 'Unknown'} | ${t.amount} | ${t.category_id} | ${t.account_id}`
     ).join('\n')
 
@@ -239,7 +253,36 @@ If none found, return { "subscriptions": [] }`
       { role: 'user', content: `Transactions:\n${txSummary}` }
     ], true)
 
-    return JSON.parse(text).subscriptions || []
+    const result = JSON.parse(text).subscriptions || []
+
+    // Insert detected subscriptions into recurring_transactions
+    if (result.length > 0) {
+      for (const sub of result) {
+        // Check if it already exists to prevent duplicates
+        const { data: existing } = await supabase
+          .from('recurring_transactions')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('description', sub.description)
+          .eq('amount', sub.amount)
+          .single()
+
+        if (!existing) {
+          await supabase.from('recurring_transactions').insert({
+            user_id: user.id,
+            amount: sub.amount,
+            type: sub.type || 'expense',
+            description: sub.description,
+            category_id: sub.category_id,
+            account_id: sub.account_id,
+            payment_method: sub.payment_method || 'card',
+            recurrence_day: sub.recurrence_day
+          })
+        }
+      }
+    }
+
+    return result
   } catch (err) {
     console.error('Detect Subscriptions Error:', err)
     return []
@@ -291,9 +334,9 @@ export async function chatWithMonolog(messages: {role: string, content: string}[
       supabase.from('budgets').select(`amount, category:categories(name)`).eq('user_id', user.id)
     ])
 
-    const txs = txResult.data || []
+    const txs: any[] = txResult.data || []
     const currentBalance = balanceResult.data || 0
-    const budgets = budgetsResult.data || []
+    const budgets: any[] = budgetsResult.data || []
 
     // Group spending for context
     const currentMonthPrefix = new Date().toISOString().slice(0, 7)

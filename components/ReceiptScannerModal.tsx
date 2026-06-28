@@ -196,7 +196,7 @@ export function ReceiptScannerModal({ open, onClose }: Props) {
 
               <div className="space-y-1.5">
                 <Label>Category</Label>
-                <Select value={categoryId} onValueChange={setCategoryId}>
+                <Select value={categoryId} onValueChange={(v) => setCategoryId(v || '')}>
                   <SelectTrigger className="bg-stone-900 border-stone-800">
                     <SelectValue placeholder="Select..." />
                   </SelectTrigger>
@@ -212,7 +212,7 @@ export function ReceiptScannerModal({ open, onClose }: Props) {
 
               <div className="space-y-1.5">
                 <Label>Wallet</Label>
-                <Select value={accountId} onValueChange={setAccountId}>
+                <Select value={accountId} onValueChange={(v) => setAccountId(v || '')}>
                   <SelectTrigger className="bg-stone-900 border-stone-800">
                     <SelectValue placeholder="Select..." />
                   </SelectTrigger>
