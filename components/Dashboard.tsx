@@ -117,21 +117,27 @@ export function Dashboard() {
         {/* Desktop Quick Actions (Hidden on Mobile) */}
         <div className="hidden md:flex flex-col gap-2 mt-4">
           
-          <button 
-            onClick={() => setActiveModal('wallets')}
-            className="flex items-center gap-3 px-4 py-3 bg-zinc-100 dark:bg-zinc-900/50 hover:bg-zinc-200 dark:hover:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-800/50 text-zinc-900 dark:text-zinc-300 rounded-xl font-medium transition-colors"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a8 8 0 0 1-5 7.59l-9.74 4.57a2 2 0 0 1-2.85-1.69V2.57"/><path d="M15 12h4v4h-4z"/></svg>
-            Manage Wallets
-          </button>
-          
-          <button 
-            onClick={() => setActiveModal('categories')}
-            className="flex items-center gap-3 px-4 py-3 bg-zinc-100 dark:bg-zinc-900/50 hover:bg-zinc-200 dark:hover:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-800/50 text-zinc-900 dark:text-zinc-300 rounded-xl font-medium transition-colors"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg>
-            Manage Categories
-          </button>
+          <div className="grid grid-cols-2 gap-2">
+            <button 
+              onClick={() => setActiveModal('wallets')}
+              className="flex flex-col items-center justify-center gap-3 p-4 aspect-square bg-zinc-100 dark:bg-zinc-900/50 hover:bg-zinc-200 dark:hover:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-800/50 text-zinc-900 dark:text-zinc-300 rounded-3xl transition-colors group"
+            >
+              <div className="p-3 bg-zinc-200/50 dark:bg-zinc-800/50 rounded-full group-hover:scale-110 transition-transform">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a8 8 0 0 1-5 7.59l-9.74 4.57a2 2 0 0 1-2.85-1.69V2.57"/><path d="M15 12h4v4h-4z"/></svg>
+              </div>
+              <span className="font-semibold text-sm">Wallets</span>
+            </button>
+            
+            <button 
+              onClick={() => setActiveModal('categories')}
+              className="flex flex-col items-center justify-center gap-3 p-4 aspect-square bg-zinc-100 dark:bg-zinc-900/50 hover:bg-zinc-200 dark:hover:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-800/50 text-zinc-900 dark:text-zinc-300 rounded-3xl transition-colors group"
+            >
+              <div className="p-3 bg-zinc-200/50 dark:bg-zinc-800/50 rounded-full group-hover:scale-110 transition-transform">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg>
+              </div>
+              <span className="font-semibold text-sm">Categories</span>
+            </button>
+          </div>
 
           <button 
             onClick={() => setActiveModal('receipt')}
