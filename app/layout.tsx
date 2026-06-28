@@ -45,13 +45,13 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning className={cn("dark", "font-sans", geist.variable)}>
-      <body className={`${inter.variable} font-sans antialiased bg-[#05050A] text-zinc-50`}>
+    <html lang="en" suppressHydrationWarning className={cn("font-sans", geist.variable)}>
+      <body className={`${inter.variable} font-sans antialiased bg-zinc-50 dark:bg-[#05050A] text-zinc-900 dark:text-zinc-50`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
           enableSystem
-          disableTransitionOnChange
+          disableTransitionOnChange={false}
         >
           {/* Ambient Blurred Background Elements */}
           <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">

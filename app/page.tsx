@@ -1,7 +1,7 @@
 import { dehydrate, HydrationBoundary } from '@tanstack/react-query'
 import { getQueryClient } from '@/lib/get-query-client'
 import { keys } from '@/lib/query-keys'
-import { getBalance, getMonthlySpending, getRecentTransactions, getAccounts, getCategories } from './actions'
+import { getBalance, getMonthlySpending, getRecentTransactions, getAccounts, getCategories, getProjectedEndOfMonthBalance, getUpcomingRecurringTransactions } from './actions'
 import { Dashboard } from '@/components/Dashboard'
 
 export const dynamic = 'force-dynamic'
@@ -17,6 +17,8 @@ export default async function Page() {
     queryClient.prefetchQuery({ queryKey: keys.transactions(),  queryFn: () => getRecentTransactions(30) }),
     queryClient.prefetchQuery({ queryKey: keys.accounts,        queryFn: getAccounts }),
     queryClient.prefetchQuery({ queryKey: keys.categories(),    queryFn: () => getCategories() }),
+    queryClient.prefetchQuery({ queryKey: keys.projectedBalance,queryFn: getProjectedEndOfMonthBalance }),
+    queryClient.prefetchQuery({ queryKey: keys.upcomingRecurrings, queryFn: () => getUpcomingRecurringTransactions() }),
   ])
 
   return (

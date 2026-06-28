@@ -4,8 +4,7 @@ import { useSuspenseQuery } from '@tanstack/react-query'
 import { keys } from '@/lib/query-keys'
 import { getBalance, getMonthlySpending, getProjectedEndOfMonthBalance } from '@/app/actions'
 import { formatCurrency } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
-import { PlusIcon, Mic } from 'lucide-react'
+import { Plus, Mic } from 'lucide-react'
 
 interface Props {
   onAddTransaction: () => void
@@ -14,50 +13,44 @@ interface Props {
 
 export function BalanceSummary({ onAddTransaction, onAddWithVoice }: Props) {
   const { data: balance }  = useSuspenseQuery({ queryKey: keys.balance,         queryFn: getBalance })
-  const { data: spending } = useSuspenseQuery({ queryKey: keys.monthlySpending, queryFn: getMonthlySpending })
-  const { data: projectedBalance } = useSuspenseQuery({ queryKey: keys.projectedBalance, queryFn: getProjectedEndOfMonthBalance })
+  const { data: monthlySpending } = useSuspenseQuery({ queryKey: keys.monthlySpending, queryFn: getMonthlySpending })
+  const { data: projectedSavings } = useSuspenseQuery({ queryKey: keys.projectedBalance, queryFn: getProjectedEndOfMonthBalance })
 
   return (
-    <div className="px-5 pt-4 pb-2">
-      {/* Total balance */}
-      <p className="text-xs text-zinc-500 font-medium uppercase tracking-widest mb-1">
-        Total Balance
-      </p>
-      <div className="flex items-end gap-3 mb-1">
-        <p className="text-4xl font-bold tracking-tight text-zinc-50 tabular-nums">
-          {formatCurrency(balance)}
-        </p>
+    <div className="flex flex-col md:bg-zinc-100 dark:md:bg-[#0A0A0A] md:rounded-3xl px-5 md:p-6 md:border border-zinc-200 dark:md:border-zinc-800/50 md:shadow-lg">
+      <h2 className="text-[10px] md:text-xs font-semibold text-zinc-500 uppercase tracking-widest mb-1 md:mb-2">Total Balance</h2>
+      <div className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 mb-1">
+        {formatCurrency(balance)}
       </div>
-      <p className="text-[11px] text-zinc-500 font-medium">
-        Projected end of month: <span className={projectedBalance < 0 ? "text-rose-400" : "text-emerald-400"}>{formatCurrency(projectedBalance)}</span>
+      <p className="text-[10px] md:text-xs text-zinc-500 mb-6 md:mb-8">
+        Projected end of month: <span className="text-emerald-500 font-medium">
+          {formatCurrency(balance + projectedSavings)}
+        </span>
       </p>
 
-      {/* Monthly spending */}
-      <div className="flex items-center gap-3 mt-4">
-        <div className="flex flex-col">
-          <span className="text-[10px] text-zinc-600 uppercase tracking-wider">This Month</span>
-          <span className="text-sm font-semibold text-rose-400 tabular-nums">
-            −{formatCurrency(spending)}
-          </span>
+      {/* Spending Progress */}
+      <div className="flex items-end justify-between mb-2">
+        <div>
+          <h3 className="text-[10px] md:text-xs font-semibold text-zinc-500 uppercase tracking-widest mb-1">This Month</h3>
+          <p className="text-sm md:text-base font-semibold text-rose-500">
+            −{formatCurrency(Math.abs(monthlySpending))}
+          </p>
         </div>
-
-        {/* Quick add buttons */}
-        <div className="ml-auto flex items-center gap-1.5">
-          <Button
+        <div className="flex gap-2">
+          <button 
             onClick={onAddWithVoice}
-            size="icon"
-            className="rounded-full h-9 w-9 bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200 border border-zinc-700"
+            className="flex items-center justify-center w-8 h-8 md:w-9 md:h-9 bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 rounded-full hover:bg-zinc-300 dark:hover:bg-zinc-700 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors shadow-sm"
+            aria-label="Add transaction with voice"
           >
-            <Mic className="h-4 w-4" />
-          </Button>
-          <Button
+            <Mic className="w-4 h-4" />
+          </button>
+          <button 
             onClick={onAddTransaction}
-            size="sm"
-            className="rounded-full h-9 px-4 text-xs font-semibold bg-zinc-100 text-zinc-900 hover:bg-white"
+            className="flex items-center justify-center h-8 md:h-9 px-3 md:px-4 bg-zinc-900 dark:bg-zinc-100 text-zinc-50 dark:text-zinc-900 rounded-full text-[11px] md:text-xs font-medium hover:scale-105 active:scale-95 transition-transform shadow-sm"
           >
-            <PlusIcon className="h-3.5 w-3.5 mr-1.5" />
+            <Plus className="w-3.5 h-3.5 mr-1 md:mr-1.5" />
             Add
-          </Button>
+          </button>
         </div>
       </div>
     </div>
