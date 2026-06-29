@@ -55,8 +55,8 @@ export default function RootLayout({
         >
           {/* Ambient Blurred Background Elements */}
           <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
-            <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-500/10 rounded-full blur-[120px] mix-blend-screen" />
-            <div className="absolute bottom-[-10%] right-[-5%] w-[35%] h-[35%] bg-purple-500/10 rounded-full blur-[100px] mix-blend-screen" />
+            <div className="absolute top-[-5%] left-[-10%] w-[300px] h-[300px] md:w-[600px] md:h-[600px] bg-indigo-500/20 md:bg-indigo-500/10 rounded-full blur-[80px] md:blur-[120px] mix-blend-screen" />
+            <div className="absolute bottom-[-5%] right-[-10%] w-[300px] h-[300px] md:w-[500px] md:h-[500px] bg-purple-500/20 md:bg-purple-500/10 rounded-full blur-[80px] md:blur-[100px] mix-blend-screen" />
           </div>
 
           <QueryProvider>
